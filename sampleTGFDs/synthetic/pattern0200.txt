@@ -1,0 +1,9 @@
+tgfd#syntheticp0200
+vertex#v1#person#name
+vertex#v2#company#name
+edge#v1#v2#worksAt
+diameter#1
+literal#x#person$name$person$name
+literal#x#person$uri$person$uri
+literal#y#company$name$company$name
+delta#0#365#1
