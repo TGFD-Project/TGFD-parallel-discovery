@@ -79,7 +79,7 @@ public class Interval {
      */
     public boolean inDelta(Duration min, Duration max)
     {
-        var between = Duration.between(
+        Duration between = Duration.between(
                 start.atStartOfDay(),
                 end.atStartOfDay());
         return between.compareTo(min) >= 0 && // min <= between
@@ -94,18 +94,18 @@ public class Interval {
      */
     public boolean inDelta(Period min, Period max)
     {
-        var between = Period.between(start, end);
+        Period between = Period.between(start, end);
         if (min.getDays() > 0 || max.getDays() > 0)
         {
             // Period does not have a compareTo method because Period cannot be accurately compared
             // if it contains months and days since month has an undefined standard of length.
             // Best we can do is compare the approximate number of days.
-            var daysBetween = approxDaysFromPeriod(between);
+            double daysBetween = approxDaysFromPeriod(between);
             return approxDaysFromPeriod(min) <= daysBetween && daysBetween <= approxDaysFromPeriod(max);
         }
         else
         {
-            var monthsBetween = between.toTotalMonths();
+            long monthsBetween = between.toTotalMonths();
             return
                     min.toTotalMonths() <= monthsBetween &&
                             (

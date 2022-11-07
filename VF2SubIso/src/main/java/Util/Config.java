@@ -44,32 +44,31 @@ public class Config {
 
     public static void parse(String input) throws FileNotFoundException {
         if(input.equals("--help")) {
-            System.out.println("""
-                     Expected arguments to parse:
-                     -p <path to the patternFile> // in case of Amazon S3, it should be in the form of bucket_name/key
-                     [-t<snapshotId> <typeFile>]
-                     [-d<snapshotId> <dataFile>]
-                     [-c<snapshotId> <diff file>]
-                     [-s<snapshotId> <snapshot timestamp>]
-                     -logcap List<double> // example: -diffCap 0.02,0.04,0.06,1
-                     -optgraphload <true-false> // load parts of data file that are needed based on the TGFDs
-                     -debug <true-false> // print details of matching
-                     -mqurl <URL> // URL of the ActiveMQ Broker
-                     -mqusername <Username> // Username to access ActiveMQ Broker
-                     -mqpassword <Password> // Password of ActiveMQ Broker
-                     -nodename <node name> // Unique node name for the workers
-                     -workers List<names> // List of workers name. example: worker1,worker2,worker3
-                     -amazon <true-false> // run on Amazon EC2
-                     -region <region name> // Name of the region in Amazon EC2
-                     -language <language name> // Names like "N-Triples", "TURTLE", "RDF/XML"
-                     -job <worker name>,<job> // For example: -job worker1,pattern1.txt
-                     -dataset <dataset name> // Options: imdb (default), dbpedia, synthetic, pdd
-                     -idletime <time> // idle time in threads (in ms)
-                     -superstep <integer> // number of supersteps
-                     -zeta <double> // value of zeta
-                     -gfd <true-false> // run GFD error detection
-                     -filter <true-false> // Filter the loaded graph based on the constant literals in the TGFD (for debugging purposes)
-                    """.indent(5));
+            System.out.println(" " +
+                    "Expected arguments to parse: " +
+                    "-p <path to the patternFile> // in case of Amazon S3, it should be in the form of bucket_name/key " +
+                    "[-t<snapshotId> <typeFile>]" +
+                    "[-d<snapshotId> <dataFile>] " +
+                    "[-c<snapshotId> <diff file>]" +
+                    "[-s<snapshotId> <snapshot timestamp>]" +
+                    "-logcap List<double> // example: -diffCap 0.02,0.04,0.06,1" +
+                    "-optgraphload <true-false> // load parts of data file that are needed based on the TGFDs" +
+                    "-debug <true-false> // print details of matching " +
+                    "-mqurl <URL> // URL of the ActiveMQ Broker " +
+                    "-mqusername <Username> // Username to access ActiveMQ Broker" +
+                    "-mqpassword <Password> // Password of ActiveMQ Broker" +
+                    "-nodename <node name> // Unique node name for the workers" +
+                    "-workers List<names> // List of workers name. example: worker1,worker2,worker3" +
+                    "-amazon <true-false> // run on Amazon EC2" +
+                    "-region <region name> // Name of the region in Amazon EC2" +
+                    "-language <language name> // Names like \"N-Triples\", \"TURTLE\", \"RDF/XML\"" +
+                    "-job <worker name>,<job> // For example: -job worker1,pattern1.txt" +
+                    "-dataset <dataset name> // Options: imdb (default), dbpedia, synthetic, pdd" +
+                    "-idletime <time> // idle time in threads (in ms)" +
+                    "-superstep <integer> // number of supersteps" +
+                    "-zeta <double> // value of zeta" +
+                    "-gfd <true-false> // run GFD error detection" +
+                    "-filter <true-false> // Filter the loaded graph based on the constant literals in the TGFD (for debugging purposes) ");
         } else
             parseInputParams(input);
     }
@@ -140,23 +139,23 @@ public class Config {
                 }else if(conf[0].equals("-idletime")) {
                     threadsIdleTime=Long.parseLong(conf[1]);
                 }else if (conf[0].startsWith("-t")) {
-                    var snapshotId = Integer.parseInt(conf[0].substring(2));
+                    int snapshotId = Integer.parseInt(conf[0].substring(2));
                     if (!typesPaths.containsKey(snapshotId))
                         typesPaths.put(snapshotId, new ArrayList <>());
                     typesPaths.get(snapshotId).add(conf[1]);
                 } else if (conf[0].startsWith("-d")) {
-                    var snapshotId = Integer.parseInt(conf[0].substring(2));
+                    int snapshotId = Integer.parseInt(conf[0].substring(2));
                     if (!dataPaths.containsKey(snapshotId))
                         dataPaths.put(snapshotId, new ArrayList <>());
                     dataPaths.get(snapshotId).add(conf[1]);
                 } else if (conf[0].startsWith("-c")) {
-                    var snapshotId = Integer.parseInt(conf[0].substring(2));
+                    int snapshotId = Integer.parseInt(conf[0].substring(2));
                     if (snapshotId != 1)
                         diffFilesPath.put(snapshotId, conf[1]);
                 } else if (conf[0].startsWith("-p")) {
                     patternPath = conf[1];
                 } else if (conf[0].startsWith("-s")) {
-                    var snapshotId = Integer.parseInt(conf[0].substring(2));
+                    int snapshotId = Integer.parseInt(conf[0].substring(2));
                     timestamps.put(snapshotId, LocalDate.parse(conf[1]));
                     timestampsReverseMap.put(LocalDate.parse(conf[1]),snapshotId);
                 }

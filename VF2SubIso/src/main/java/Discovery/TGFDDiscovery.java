@@ -154,11 +154,11 @@ public class TGFDDiscovery {
 
 		if (cmd.hasOption(PATH_PARAM)) {
 			this.path = cmd.getOptionValue(PATH_PARAM).replaceFirst("^~", System.getProperty("user.home"));
-			if (!Files.isDirectory(Path.of(this.getPath()))) {
-				System.out.println("Dataset path " + Path.of(this.getPath()) + " is not a valid directory.");
+			if (!Files.isDirectory(Paths.get(this.getPath()))) {
+				System.out.println("Dataset path " + Paths.get(this.getPath()) + " is not a valid directory.");
 				System.exit(1);
 			}
-			this.setGraphSize(Path.of(this.getPath()).getFileName().toString());
+			this.setGraphSize(Paths.get(this.getPath()).getFileName().toString());
 		}
 
 		if (!cmd.hasOption("loader")) {
@@ -201,8 +201,8 @@ public class TGFDDiscovery {
 			}
 			if (cmd.hasOption("changefilePath")) {
 				this.changefilePath = cmd.getOptionValue("changefilePath").replaceFirst("^~", System.getProperty("user.home"));
-				if (!Files.isDirectory(Path.of(this.getPath()))) {
-					System.out.println("Changefiles path " + Path.of(this.getPath()) + " is not a valid directory.");
+				if (!Files.isDirectory(Paths.get(this.getPath()))) {
+					System.out.println("Changefiles path " + Paths.get(this.getPath()) + " is not a valid directory.");
 					System.exit(1);
 				}
 			} else {
@@ -241,16 +241,16 @@ public class TGFDDiscovery {
 		}
 
 		switch (this.getLoader().toLowerCase()) {
-			case "dbpedia" -> this.setDBpediaTimestampsAndFilePaths(this.getPath());
-			case "citation" -> this.setCitationTimestampsAndFilePaths();
-			case "imdb" -> this.setImdbTimestampToFilesMapFromPath(this.getPath());
-			case "synthetic" -> this.setSyntheticTimestampToFilesMapFromPath(this.getPath());
-			default -> throw new IllegalArgumentException("No valid loader specified.");
+			case "dbpedia": this.setDBpediaTimestampsAndFilePaths(this.getPath()); break;
+			case "citation": this.setCitationTimestampsAndFilePaths(); break;
+			case "imdb": this.setImdbTimestampToFilesMapFromPath(this.getPath()); break;
+			case "synthetic": this.setSyntheticTimestampToFilesMapFromPath(this.getPath()); break;
+			default: throw new IllegalArgumentException("No valid loader specified.");
 		}
 
 		if (cmd.hasOption("interestLabels")) {
 			String[] interestLabels = cmd.getOptionValue("interestLabels").split(",");
-			this.getInterestLabelsSet().addAll(List.of(interestLabels));
+			this.getInterestLabelsSet().addAll(Arrays.asList(interestLabels));
 		}
 
 		if (cmd.hasOption("slow"))
@@ -1336,7 +1336,7 @@ public class TGFDDiscovery {
 
 	@NotNull
 	public static HashMap<String, List<String>> generateSyntheticTimestampToFilesMapFromPath(String path) {
-		List<File> allFilesInDirectory = new ArrayList<>(List.of(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
+		List<File> allFilesInDirectory = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
 		allFilesInDirectory.sort(Comparator.comparing(File::getName));
 		HashMap<String,List<String>> timestampToFilesMap = new HashMap<>();
 		for (File ntFile: allFilesInDirectory) {
@@ -1360,7 +1360,7 @@ public class TGFDDiscovery {
 	@NotNull
 	public static HashMap<String, List<String>> generateImdbTimestampToFilesMapFromPath(String path) {
 		System.out.println("Searching for IMDB snapshots in path: "+ path);
-		List<File> allFilesInDirectory = new ArrayList<>(List.of(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
+		List<File> allFilesInDirectory = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
 		System.out.println("Found files: "+allFilesInDirectory);
 		List<File> ntFilesInDirectory = new ArrayList<>();
 		for (File ntFile: allFilesInDirectory) {
@@ -1434,11 +1434,11 @@ public class TGFDDiscovery {
 
 	@NotNull
 	public static Map<String, List<String>> generateDbpediaTimestampToFilesMap(String path) {
-		ArrayList<File> directories = new ArrayList<>(List.of(Objects.requireNonNull(new File(path).listFiles(File::isDirectory))));
+		ArrayList<File> directories = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isDirectory))));
 		directories.sort(Comparator.comparing(File::getName));
 		Map<String, List<String>> timestampToFilesMap = new HashMap<>();
 		for (File directory: directories) {
-			ArrayList<File> files = new ArrayList<>(List.of(Objects.requireNonNull(new File(directory.getPath()).listFiles(File::isFile))));
+			ArrayList<File> files = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(directory.getPath()).listFiles(File::isFile))));
 			List<String> paths = files.stream().map(File::getPath).collect(Collectors.toList());
 			timestampToFilesMap.put(directory.getName(),paths);
 		}
@@ -1632,7 +1632,7 @@ public class TGFDDiscovery {
 	}
 
 	public Long getTotalVSpawnTime(int index) {
-		return index < this.getTotalVSpawnTime().size() ? this.getTotalVSpawnTime().get(index) : 0;
+		return index < this.getTotalVSpawnTime().size() ? this.getTotalVSpawnTime().get(index) : (long)0;
 	}
 
 	public void addToTotalVSpawnTime(long vSpawnTime) {
@@ -1645,7 +1645,7 @@ public class TGFDDiscovery {
 	}
 
 	public Long getTotalMatchingTime(int index) {
-		return index < this.getTotalMatchingTime().size() ? this.getTotalMatchingTime().get(index) : 0;
+		return index < this.getTotalMatchingTime().size() ? this.getTotalMatchingTime().get(index) : (long)0;
 	}
 
 	public void addToTotalMatchingTime(long matchingTime) {
@@ -2045,7 +2045,7 @@ public class TGFDDiscovery {
 	}
 
 	public static Long returnLongAtIndexIfExistsElseZero(List<Long> list, int index) {
-		return index < list.size() ? list.get(index) : 0;
+		return index < list.size() ? list.get(index) : (long)0;
 	}
 
 	public double getPatternTheta() {
@@ -2109,7 +2109,7 @@ public class TGFDDiscovery {
 	}
 
 	public static Double returnDoubleAtIndexIfExistsElseZero(List<Double> list, int index) {
-		return index < list.size() ? list.get(index) : 0;
+		return index < list.size() ? list.get(index) : (double)0;
 	}
 
 	public Set<String> getInterestLabelsSet() {

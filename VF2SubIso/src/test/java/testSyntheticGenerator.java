@@ -20,11 +20,11 @@ public class testSyntheticGenerator {
     {
         if(args.length!=3)
         {
-            System.out.println("""
-                    Input argument is missing:
-                    1. Path to the first snapshot of the synthetic graph
-                    2. Number of snapshots
-                    3. Name of the graph""");
+            System.out.println(" " +
+                    "Input argument is missing:" +
+                    "1. Path to the first snapshot of the synthetic graph " +
+                    "2. Number of snapshots " +
+                    "3. Name of the graph");
             return;
         }
         SyntheticLoader syntheticLoader=new SyntheticLoader(new ArrayList <TGFD>(), Collections.singletonList(args[0]));

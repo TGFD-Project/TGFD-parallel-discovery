@@ -77,7 +77,7 @@ public class IMDBLoader extends GraphLoader{
                     subjectNodeURL = subjectNodeURL.substring(16);
                 }
 
-                var temp=subjectNodeURL.split("/");
+                String []temp=subjectNodeURL.split("/");
                 if(temp.length!=2)
                 {
                     // Error!

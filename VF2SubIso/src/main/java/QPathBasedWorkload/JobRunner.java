@@ -105,7 +105,7 @@ public class JobRunner {
             Graph<Vertex, RelationshipEdge> subgraph = loader.getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),job.getQuery().getTGFD());
             job.setSubgraph(subgraph);
             job.runTheFirstSnapshot();
-            var results= job.findMatchMapping();
+            HashSet<VertexMapping> results= job.findMatchMapping();
             matchCollectionHashMap.get(job.getQuery().getTGFD().getName()).addMatches(currentSnapshotDate,results);
         }
         printWithTime("Match retrieval", System.currentTimeMillis()-startTime);

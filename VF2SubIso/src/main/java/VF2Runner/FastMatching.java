@@ -89,14 +89,14 @@ public class FastMatching extends LocalizedVF2Matching {
     private void findMatchesAroundThisCenterVertex(GraphLoader currentSnapshot, int year, DataVertex dataVertex, Set<Set<ConstantLiteral>> matchesAroundCenterVertex) {
         PatternType patternType = this.pattern.getPatternType();
         switch (patternType) {
-            case SingleNode -> throw new IllegalArgumentException("this.getCurrentVSpawnLevel() < 1");
-            case SingleEdge -> findAllMatchesOfK1patternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex);
-            case DoubleEdge -> findAllMatchesOfK2PatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex);
-            case Star -> findAllMatchesOfStarPatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex);
-            case Line -> findAllMatchesOfLinePatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex, false);
-            case Circle -> findAllMatchesOfLinePatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex, true);
-            case Complex -> findAllMatchesOfPatternInThisSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex);
-            default -> throw new IllegalArgumentException("Unrecognized pattern type");
+            case SingleNode: throw new IllegalArgumentException("this.getCurrentVSpawnLevel() < 1");
+            case SingleEdge: findAllMatchesOfK1patternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex);  break;
+            case DoubleEdge: findAllMatchesOfK2PatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex); break;
+            case Star: findAllMatchesOfStarPatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex); break;
+            case Line: findAllMatchesOfLinePatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex, false);  break;
+            case Circle: findAllMatchesOfLinePatternInSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex, true); break;
+            case Complex: findAllMatchesOfPatternInThisSnapshotUsingCenterVertex(currentSnapshot, dataVertex, year, matchesAroundCenterVertex); break;
+            default: throw new IllegalArgumentException("Unrecognized pattern type");
         }
     }
 

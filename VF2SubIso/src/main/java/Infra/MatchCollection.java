@@ -69,8 +69,8 @@ public class MatchCollection
             LocalDate timestamp,
             GraphMapping<Vertex, RelationshipEdge> mapping)
     {
-        var signatureX = Match.signatureFromX(pattern, mapping, dependency.getX());
-        var signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
+        String signatureX = Match.signatureFromX(pattern, mapping, dependency.getX());
+        String signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
 
         //TODO: Check if this is correct. If a match violates a literal, it must be ignored!
         if(signatureX == null)
@@ -81,10 +81,10 @@ public class MatchCollection
             return false;
         }
 
-        var match = matchesBySignature.getOrDefault(signatureFromPattern, null);
+        Match match = matchesBySignature.getOrDefault(signatureFromPattern, null);
         if (match == null)
         {
-            var signatureY=Match.signatureFromY(pattern,mapping,dependency.getY());
+            String signatureY=Match.signatureFromY(pattern,mapping,dependency.getY());
             match = new Match(signatureX, signatureY, signatureFromPattern);
             matchesBySignature.put(signatureFromPattern, match);
         }
@@ -111,8 +111,8 @@ public class MatchCollection
             LocalDate timestamp,
             VertexMapping mapping)
     {
-        var signatureX = Match.signatureFromX(pattern, mapping, dependency.getX());
-        var signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
+        String signatureX = Match.signatureFromX(pattern, mapping, dependency.getX());
+        String signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
 
         //TODO: Check if this is correct. If a match violates a literal, it must be ignored!
         if(signatureX == null)
@@ -123,10 +123,10 @@ public class MatchCollection
             return false;
         }
 
-        var match = matchesBySignature.getOrDefault(signatureFromPattern, null);
+        Match match = matchesBySignature.getOrDefault(signatureFromPattern, null);
         if (match == null)
         {
-            var signatureY=Match.signatureFromY(pattern,mapping,dependency.getY());
+            String signatureY=Match.signatureFromY(pattern,mapping,dependency.getY());
             match = new Match(signatureX, signatureY, signatureFromPattern);
             matchesBySignature.put(signatureFromPattern, match);
         }
@@ -259,7 +259,7 @@ public class MatchCollection
     {
         timestamps.add(timepoint);
         int matchCount = 0;
-        for (var mapping : newMatches.values())
+        for (GraphMapping <Vertex, RelationshipEdge> mapping : newMatches.values())
         {
             if (Config.debug) {
                 System.out.println("---------- Match found ---------- ");
@@ -296,18 +296,18 @@ public class MatchCollection
     {
         timestamps.add(timestamp);
 
-        var newSignatures = newMatchesSignatures.stream().collect(Collectors.toSet());
-        var removedSignatures = removedMatchesSignatures.stream().collect(Collectors.toSet());
+        Set<String> newSignatures = newMatchesSignatures.stream().collect(Collectors.toSet());
+        Set<String> removedSignatures = removedMatchesSignatures.stream().collect(Collectors.toSet());
 
-        var matchesFromPreviousSnapshot = getMatches(previousTimeStamp);
+        List<Match> matchesFromPreviousSnapshot = getMatches(previousTimeStamp);
          Set<String> signatures = matchesFromPreviousSnapshot.stream().map(Match::getSignatureFromPattern).collect(Collectors.toSet());
 
-        var signaturesToUpdate = signatures.stream()
+        List<String> signaturesToUpdate = signatures.stream()
                 .filter(k -> !newSignatures.contains(k))
                 .filter(k -> !removedSignatures.contains(k))
                 .collect(Collectors.toList());
 
-        for (var signature : signaturesToUpdate)
+        for (String signature : signaturesToUpdate)
         {
             matchesBySignature.get(signature).addTimepoint(timestamp, granularity);
 //            var signatureY=matchesBySignature.get(signature).getSignatureY(previousTimeStamp);
@@ -339,15 +339,15 @@ public class MatchCollection
     {
         timestamps.add(timestamp);
 
-        var newSignatures = newMatchesSignatures.stream().collect(Collectors.toSet());
-        var removedSignatures = removedMatchesSignatures.stream().collect(Collectors.toSet());
+        Set<String> newSignatures = newMatchesSignatures.stream().collect(Collectors.toSet());
+        Set<String>  removedSignatures = removedMatchesSignatures.stream().collect(Collectors.toSet());
 
-        var signaturesToUpdate = matchesBySignature.keySet().stream()
+        List<String>  signaturesToUpdate = matchesBySignature.keySet().stream()
                 .filter(k -> !newSignatures.contains(k))
                 .filter(k -> !removedSignatures.contains(k))
                 .collect(Collectors.toList());
 
-        for (var signature : signaturesToUpdate)
+        for (String signature : signaturesToUpdate)
         {
             matchesBySignature.get(signature).addTimepoint(timestamp, granularity);
 //            var signatureY=Match.signatureFromY(pattern,matchesBySignature.get(signature).getMatchMapping(),dependency.getY());
@@ -374,7 +374,8 @@ public class MatchCollection
 
     /** Returns matches applicable for only the given timestamp. */
     public List<Match> getMatches(LocalDate timestamp) {
-        var intervals = List.of(new Interval(timestamp, timestamp));
+//        List<Interval> intervals = new ArrayList<>();
+//        intervals.add(new Interval(timestamp, timestamp));
         List<Match> res=new ArrayList<>();
         for (Match match:matchesBySignature.values()) {
             if(match.getIntervals().stream().anyMatch(intv -> intv.contains(timestamp)))

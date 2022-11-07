@@ -84,14 +84,14 @@ public class testDbpedia
                 continue;
             if (conf[0].toLowerCase().startsWith("-t"))
             {
-                var snapshotId = Integer.parseInt(conf[0].substring(2));
+                int snapshotId = Integer.parseInt(conf[0].substring(2));
                 if (!typePathsById.containsKey(snapshotId))
                     typePathsById.put(snapshotId, new ArrayList<String>());
                 typePathsById.get(snapshotId).add(conf[1]);
             }
             else if (conf[0].toLowerCase().startsWith("-d"))
             {
-                var snapshotId = Integer.parseInt(conf[0].substring(2));
+                int snapshotId = Integer.parseInt(conf[0].substring(2));
                 if (!dataPathsById.containsKey(snapshotId))
                     dataPathsById.put(snapshotId, new ArrayList<String>());
                 dataPathsById.get(snapshotId).add(conf[1]);
@@ -102,7 +102,7 @@ public class testDbpedia
             }
             else if (conf[0].toLowerCase().startsWith("-s"))
             {
-                var snapshotId = Integer.parseInt(conf[0].substring(2));
+                int snapshotId = Integer.parseInt(conf[0].substring(2));
                 timestamps.put(snapshotId,LocalDate.parse(conf[1]));
             }
             else if(conf[0].toLowerCase().startsWith("-optgraphload"))

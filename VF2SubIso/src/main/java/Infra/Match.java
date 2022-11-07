@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 /**
  * Represents a match.
@@ -103,18 +104,18 @@ public final class Match {
             return;
         }
 
-        var latestInterval = intervals.get(intervals.size()-1);
+        Interval latestInterval = intervals.get(intervals.size()-1);
         //var latestInterval = intervals.stream().max(Comparator.comparing(Interval::getEnd)).orElseThrow();
 
-        var latestEnd = latestInterval.getEnd();
+        LocalDate latestEnd = latestInterval.getEnd();
         if (timepoint.isBefore(latestEnd) || timepoint.isEqual(latestEnd))
             return;
 //            throw new IllegalArgumentException(String.format(
 //                "Timepoint `%s` is <= the latest interval's end `%s`",
 //                timepoint.toString(), latestEnd.toString()));
 
-        var sinceEnd = Duration.between(latestEnd.atStartOfDay(), timepoint.atStartOfDay());
-        var comparison = sinceEnd.compareTo(granularity);
+        Duration sinceEnd = Duration.between(latestEnd.atStartOfDay(), timepoint.atStartOfDay());
+        int comparison = sinceEnd.compareTo(granularity);
         if (comparison > 0)
         {
             // Time since end is greater than the granularity so add a new interval.
@@ -215,16 +216,16 @@ public final class Match {
             ArrayList<Literal> xLiterals)
     {
         // We assume that all x variable literals are also defined in the pattern? [2021-02-13]
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         AtomicBoolean violateALiteralInX= new AtomicBoolean(false);
 
         // TODO: consider collecting (type, name, attr) and sorting at the end [2021-02-14]
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = mapping.getVertexCorrespondence(patternVertex, false);
+            Vertex matchVertex = mapping.getVertexCorrespondence((Vertex) patternVertex, false);
             if (matchVertex == null)
                 return;
 
@@ -236,8 +237,8 @@ public final class Match {
                 // We can ignore constant literals because a Match is for a single TGFD which has constant defined in the pattern
                 if (literal instanceof VariableLiteral)
                 {
-                    var varLiteral = (VariableLiteral)literal;
-                    var matchVertexTypes = matchVertex.getTypes();
+                    VariableLiteral varLiteral = (VariableLiteral)literal;
+                    Set<String> matchVertexTypes = matchVertex.getTypes();
                     if ((matchVertexTypes.contains(varLiteral.getVertexType_1()) && matchVertex.hasAttribute(varLiteral.getAttrName_1())))
                     {
                         builder.append(varLiteral.getVertexType_1()).append("_1.")
@@ -256,7 +257,7 @@ public final class Match {
                 else if(literal instanceof ConstantLiteral)
                 {
                     //TODO: Check for constant literals on X
-                    var constantLiteral = (ConstantLiteral)literal;
+                    ConstantLiteral constantLiteral = (ConstantLiteral)literal;
                     if (!matchVertex.getTypes().contains(constantLiteral.getVertexType()))
                         continue;
                     if (!matchVertex.hasAttribute(constantLiteral.getAttrName()))
@@ -286,16 +287,16 @@ public final class Match {
             ArrayList<Literal> xLiterals)
     {
         // We assume that all x variable literals are also defined in the pattern? [2021-02-13]
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         AtomicBoolean violateALiteralInX= new AtomicBoolean(false);
 
         // TODO: consider collecting (type, name, attr) and sorting at the end [2021-02-14]
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = mapping.getVertexCorrespondence(patternVertex);
+            Vertex matchVertex = mapping.getVertexCorrespondence((Vertex) patternVertex);
             if (matchVertex == null)
                 return;
 
@@ -307,8 +308,8 @@ public final class Match {
                 // We can ignore constant literals because a Match is for a single TGFD which has constant defined in the pattern
                 if (literal instanceof VariableLiteral)
                 {
-                    var varLiteral = (VariableLiteral)literal;
-                    var matchVertexTypes = matchVertex.getTypes();
+                    VariableLiteral varLiteral = (VariableLiteral)literal;
+                    Set<String> matchVertexTypes = matchVertex.getTypes();
                     if ((matchVertexTypes.contains(varLiteral.getVertexType_1()) && matchVertex.hasAttribute(varLiteral.getAttrName_1())))
                     {
                         builder.append(matchVertex.getAttributeValueByName(varLiteral.getAttrName_1()));
@@ -323,7 +324,7 @@ public final class Match {
                 else if(literal instanceof ConstantLiteral)
                 {
                     //TODO: Check for constant literals on X
-                    var constantLiteral = (ConstantLiteral)literal;
+                    ConstantLiteral constantLiteral = (ConstantLiteral)literal;
                     if (!matchVertex.getTypes().contains(constantLiteral.getVertexType()))
                         continue;
                     if (!matchVertex.hasAttribute(constantLiteral.getAttrName()))
@@ -353,13 +354,13 @@ public final class Match {
             ArrayList<Literal> yLiterals)
     {
         // We assume that all x variable literals are also defined in the pattern? [2021-02-13]
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = mapping.getVertexCorrespondence(patternVertex, false);
+            Vertex matchVertex = mapping.getVertexCorrespondence((Vertex) patternVertex, false);
             if (matchVertex == null)
                 return;
 
@@ -370,7 +371,7 @@ public final class Match {
             {
                 if (literal instanceof ConstantLiteral)
                 {
-                    var constantLiteral = (ConstantLiteral)literal;
+                    ConstantLiteral constantLiteral = (ConstantLiteral)literal;
                     if (!matchVertex.getTypes().contains(constantLiteral.getVertexType()))
                         continue;
                     if (!matchVertex.hasAttribute(constantLiteral.getAttrName()))
@@ -383,8 +384,8 @@ public final class Match {
                 }
                 else if (literal instanceof VariableLiteral)
                 {
-                    var varLiteral = (VariableLiteral)literal;
-                    var matchVertexTypes = matchVertex.getTypes();
+                    VariableLiteral varLiteral = (VariableLiteral)literal;
+                    Set<String> matchVertexTypes = matchVertex.getTypes();
                     if ((matchVertexTypes.contains(varLiteral.getVertexType_1()) && matchVertex.hasAttribute(varLiteral.getAttrName_1())))
                     {
                         builder.append(matchVertex.getAttributeValueByName(varLiteral.getAttrName_1()));
@@ -417,13 +418,13 @@ public final class Match {
             ArrayList<Literal> yLiterals)
     {
         // We assume that all x variable literals are also defined in the pattern? [2021-02-13]
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = mapping.getVertexCorrespondence(patternVertex);
+            Vertex matchVertex = mapping.getVertexCorrespondence((Vertex) patternVertex);
             if (matchVertex == null)
                 return;
 
@@ -434,7 +435,7 @@ public final class Match {
             {
                 if (literal instanceof ConstantLiteral)
                 {
-                    var constantLiteral = (ConstantLiteral)literal;
+                    ConstantLiteral constantLiteral = (ConstantLiteral)literal;
                     if (!matchVertex.getTypes().contains(constantLiteral.getVertexType()))
                         continue;
                     if (!matchVertex.hasAttribute(constantLiteral.getAttrName()))
@@ -447,8 +448,8 @@ public final class Match {
                 }
                 else if (literal instanceof VariableLiteral)
                 {
-                    var varLiteral = (VariableLiteral)literal;
-                    var matchVertexTypes = matchVertex.getTypes();
+                    VariableLiteral varLiteral = (VariableLiteral)literal;
+                    Set<String> matchVertexTypes = matchVertex.getTypes();
                     if ((matchVertexTypes.contains(varLiteral.getVertexType_1()) && matchVertex.hasAttribute(varLiteral.getAttrName_1())))
                     {
                         builder.append(matchVertex.getAttributeValueByName(varLiteral.getAttrName_1()));
@@ -478,18 +479,18 @@ public final class Match {
             VF2PatternGraph pattern,
             GraphMapping<Vertex, RelationshipEdge> mapping)
     {
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = (DataVertex)mapping.getVertexCorrespondence(patternVertex, false);
+            DataVertex matchVertex = (DataVertex)mapping.getVertexCorrespondence((Vertex) patternVertex, false);
             if (matchVertex == null)
                 return;
             builder.append(matchVertex.getVertexURI());
             builder.append(",");
-            for (Attribute patternAttr:patternVertex.getAllAttributesList()) {
+            for (Attribute patternAttr:((Vertex)patternVertex).getAllAttributesList()) {
                 if(!patternAttr.getAttrName().equals("uri"))
                 {
                     builder.append(matchVertex.getAttributeValueByName(patternAttr.getAttrName()));
@@ -510,18 +511,18 @@ public final class Match {
             VF2PatternGraph pattern,
             VertexMapping mapping)
     {
-        var builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         // NOTE: Ensure stable sorting of vertices [2021-02-13]
-        var sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
+        Stream sortedPatternVertices = pattern.getPattern().vertexSet().stream().sorted();
         sortedPatternVertices.forEach(patternVertex ->
         {
-            var matchVertex = (DataVertex)mapping.getVertexCorrespondence(patternVertex);
+            DataVertex matchVertex = (DataVertex)mapping.getVertexCorrespondence((Vertex) patternVertex);
             if (matchVertex == null)
                 return;
             builder.append(matchVertex.getVertexURI());
             builder.append(",");
-            for (Attribute patternAttr:patternVertex.getAllAttributesList()) {
+            for (Attribute patternAttr:((Vertex) patternVertex).getAllAttributesList()) {
                 if(!patternAttr.getAttrName().equals("uri"))
                 {
                     builder.append(matchVertex.getAttributeValueByName(patternAttr.getAttrName()));

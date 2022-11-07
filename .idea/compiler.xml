@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="TGFD" target="15" />
+      <module name="TGFD" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

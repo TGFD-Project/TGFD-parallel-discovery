@@ -36,8 +36,8 @@ public class IncrementalChange {
         afterMatches=new HashMap<>();
         if(afterMatchIterator!=null) {
             while (afterMatchIterator.hasNext()) {
-                var mapping = afterMatchIterator.next();
-                var signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
+                GraphMapping<Vertex, RelationshipEdge> mapping = afterMatchIterator.next();
+                String signatureFromPattern = Match.signatureFromPattern(pattern, mapping);
 
                 afterMatches.put(signatureFromPattern, mapping);
             }

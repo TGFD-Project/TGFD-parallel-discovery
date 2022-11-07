@@ -75,7 +75,7 @@ public class IMDBPartitioner {
                             subjectNodeURL = subjectNodeURL.substring(16);
                         }
 
-                        var temp2=subjectNodeURL.split("/");
+                        String []temp2=subjectNodeURL.split("/");
                         if(temp2.length==2) {
                             String subjectID = temp2[1];
                             DataVertex v= (DataVertex) imdb.getGraph().getNode(subjectID);

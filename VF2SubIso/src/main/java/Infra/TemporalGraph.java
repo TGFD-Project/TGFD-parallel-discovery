@@ -58,7 +58,7 @@ public class TemporalGraph<V>
     public void addVertex(V vertex, String vertexId, LocalDate timestamp)
     {
         // TODO: extract vertexId from vertex and remove vertexId parameter [2021-02-24]
-        var temporalVertices = temporalVerticesById.get(vertexId);
+        List<TemporalVertex<V>> temporalVertices = temporalVerticesById.get(vertexId);
         if (temporalVertices == null)
         {
             temporalVertices = new ArrayList<>();
@@ -68,7 +68,7 @@ public class TemporalGraph<V>
         }
 
         TemporalVertex latestTemporalVertex = null;
-        for (var temporalVertex : temporalVertices)
+        for (TemporalVertex<V> temporalVertex : temporalVertices)
         {
             // TODO: throw exception if argument vertex != temporal vertex [2021-02-24]
             if (temporalVertex.interval.contains(timestamp))
@@ -81,10 +81,10 @@ public class TemporalGraph<V>
             }
         }
 
-        var sinceEnd = Duration.between(
+        Duration sinceEnd = Duration.between(
             latestTemporalVertex.interval.getEnd().atStartOfDay(),
             timestamp.atStartOfDay());
-        var comparison = sinceEnd.compareTo(granularity);
+        int comparison = sinceEnd.compareTo(granularity);
         if (comparison > 0)
         {
             // Time since end is greater than the granularity so add a new interval.
@@ -112,11 +112,11 @@ public class TemporalGraph<V>
      */
     public V getVertex(String vertexId, LocalDate timestamp)
     {
-        var temporalVertices = temporalVerticesById.get(vertexId);
+        List<TemporalVertex<V>> temporalVertices = temporalVerticesById.get(vertexId);
         if (temporalVertices == null)
             throw new IllegalArgumentException(String.format("vertex %s does not exist", vertexId));
 
-        for (var temporalVertex : temporalVertices)
+        for (TemporalVertex<V> temporalVertex : temporalVertices)
         {
             if (temporalVertex.interval.contains(timestamp)) {
                 return temporalVertex.vertex;

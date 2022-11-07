@@ -232,12 +232,13 @@ public class Histogram {
             System.out.println("Reading data graph: " + path);
             dataModel.read(input.toUri().toString());
         }
-        GraphLoader graphLoader = switch (this.loader) {
-            case "dbpedia" -> new DBPediaLoader(new ArrayList<>(), Collections.singletonList(model), Collections.singletonList(dataModel));
-            case "synthetic" -> new SyntheticLoader(new ArrayList<>(), timestampToPathEntry.getValue());
-            case "imdb" -> new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel));
-            default -> throw new IllegalArgumentException("Specified loader " + this.loader + " is not supported.");
-        };
+        GraphLoader graphLoader = null;
+        switch (this.loader) {
+            case "dbpedia": graphLoader = new DBPediaLoader(new ArrayList<>(), Collections.singletonList(model), Collections.singletonList(dataModel)); break;
+            case "synthetic": graphLoader = new SyntheticLoader(new ArrayList<>(), timestampToPathEntry.getValue()); break;
+            case "imdb": graphLoader = new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel)); break;
+            default: throw new IllegalArgumentException("Specified loader " + this.loader + " is not supported.");
+        }
         TGFDDiscovery.printWithTime("Single graph load", (System.currentTimeMillis() - graphLoadTime));
         return graphLoader;
     }
