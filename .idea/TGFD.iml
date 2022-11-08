@@ -118,7 +118,6 @@
     <orderEntry type="library" name="Maven: org.apache.htrace:htrace-core4:4.1.0-incubating" level="project" />
     <orderEntry type="library" name="Maven: org.apache.zookeeper:zookeeper:3.4.13" level="project" />
     <orderEntry type="library" name="Maven: jline:jline:0.9.94" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.yetus:audience-annotations:0.5.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-compress:1.18" level="project" />
     <orderEntry type="library" name="Maven: org.apache.kerby:kerb-simplekdc:1.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.kerby:kerb-client:1.0.1" level="project" />
@@ -157,5 +156,26 @@
     <orderEntry type="library" name="Maven: com.squareup.okhttp:okhttp:2.7.5" level="project" />
     <orderEntry type="library" name="Maven: com.squareup.okio:okio:1.6.0" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.8" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-client:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase.thirdparty:hbase-shaded-protobuf:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-common:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-logging:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase.thirdparty:hbase-shaded-gson:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase.thirdparty:hbase-unsafe:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-hadoop-compat:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-metrics-api:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-hadoop2-compat:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-metrics:2.4.15" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Maven: javax.activation:javax.activation-api:1.2.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-protocol-shaded:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase-protocol:2.4.15" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase.thirdparty:hbase-shaded-miscellaneous:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase.thirdparty:hbase-shaded-netty:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.jruby.jcodings:jcodings:1.0.55" level="project" />
+    <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
+    <orderEntry type="library" name="Maven: io.dropwizard.metrics:metrics-core:3.2.6" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.commons:commons-crypto:1.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.yetus:audience-annotations:0.5.0" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.hbase:hbase:2.4.15" level="project" />
   </component>
 </module>
