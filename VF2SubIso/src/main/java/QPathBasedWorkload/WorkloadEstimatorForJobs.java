@@ -1,6 +1,6 @@
 package QPathBasedWorkload;
 
-import AmazonStorage.S3Storage;
+import SharedStorage.S3Storage;
 import ICs.TGFD;
 import Infra.*;
 import Loader.GraphLoader;

@@ -1,6 +1,6 @@
 package ParalleRunner;
 
-import AmazonStorage.S3Storage;
+import SharedStorage.S3Storage;
 import MPI.Consumer;
 import MPI.Producer;
 import Loader.TGFDGenerator;

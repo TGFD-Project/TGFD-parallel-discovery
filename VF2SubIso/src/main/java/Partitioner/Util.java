@@ -1,6 +1,6 @@
 package Partitioner;
 
-import AmazonStorage.S3Storage;
+import SharedStorage.S3Storage;
 import ICs.TGFD;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;

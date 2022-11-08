@@ -1,6 +1,6 @@
 package ParalleRunner;
 
-import AmazonStorage.S3Storage;
+import SharedStorage.S3Storage;
 import Infra.RelationshipEdge;
 import Infra.SimpleEdge;
 import Infra.Vertex;

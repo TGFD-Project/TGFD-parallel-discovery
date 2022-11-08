@@ -1,4 +1,4 @@
-package AmazonStorage;
+package SharedStorage;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;

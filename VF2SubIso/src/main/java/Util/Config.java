@@ -42,6 +42,10 @@ public class Config {
     public static boolean saveViolations=false;
     public static boolean debug =false;
 
+    public static String HDFSName = "fs.default.name";
+
+    public static String HDFSAddress="hdfs://130.113.158.134:9000/user/hdp/";
+
     public static void parse(String input) throws FileNotFoundException {
         if(input.equals("--help")) {
             System.out.println(" " +

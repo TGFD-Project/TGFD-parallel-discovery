@@ -350,7 +350,7 @@ public class TGFDDiscovery {
 	}
 
 	public static CommandLine parseArgs(Options options, String[] args) {
-		CommandLineParser parser = new DefaultParser();
+		CommandLineParser parser = new BasicParser();// DefaultParser();
 		CommandLine cmd = null;
 		try {
 			cmd = parser.parse(options, args);
