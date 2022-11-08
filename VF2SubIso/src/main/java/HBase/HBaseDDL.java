@@ -1,4 +1,4 @@
-package Hbase;
+package HBase;
 
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
