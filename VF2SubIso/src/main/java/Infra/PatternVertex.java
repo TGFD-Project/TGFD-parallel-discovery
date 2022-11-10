@@ -1,6 +1,6 @@
 package Infra;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import Util.Config;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -12,7 +12,8 @@ public class PatternVertex extends Vertex{
 
     public PatternVertex(String type) {
         super(type.toLowerCase());
-        this.patternVertexRandomID= RandomStringUtils.random(20, true, true);
+
+        this.patternVertexRandomID= Config.generateRandomString(20);
     }
 
     public PatternVertex(String type, String patternVertexRandomID) {

@@ -1483,14 +1483,16 @@ public class TGFDDiscovery {
 					literalTree.createNodeAtLevel(j, literal, null);
 					System.out.println("Created root "+index+"/"+activeAttributesInPattern.size()+" of literal forest.");
 				}
-			} else {
+			}
+			else
+			{
 				ArrayList<LiteralTreeNode> literalTreePreviousLevel = literalTree.getLevel(j - 1);
 				if (literalTreePreviousLevel.size() == 0) {
 					System.out.println("Previous level of literal tree is empty. Nothing to expand. End HSpawn");
 					break;
 				}
 				literalTree.addLevel();
-				HashSet<AttributeDependency> visitedPaths = new HashSet<>(); //TODO: Can this be implemented as HashSet to improve performance?
+				HashSet<AttributeDependency> visitedPaths = new HashSet<>();
 				ArrayList<TGFD> currentLevelTGFDs = new ArrayList<>();
 				for (int literalTreePreviousLevelIndex = 0; literalTreePreviousLevelIndex < literalTreePreviousLevel.size(); literalTreePreviousLevelIndex++) {
 					System.out.println("Expanding previous level literal tree path " + (literalTreePreviousLevelIndex+1) + "/" + literalTreePreviousLevel.size()+"...");

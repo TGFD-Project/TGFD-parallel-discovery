@@ -6,10 +6,7 @@ import org.apache.activemq.ActiveMQConnection;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 
 public class Config {
 
@@ -42,9 +39,9 @@ public class Config {
     public static boolean saveViolations=false;
     public static boolean debug =false;
 
-    public static String HDFSName = "fs.default.name";
+    public static String HDFSName = "fs.defaultFS";
 
-    public static String HDFSAddress="hdfs://130.113.158.134:9000/user/hdp/";
+    public static String HDFSAddress="hdfs://vienna.cas.mcmaster.ca:9000/";
 
     public static void parse(String input) throws FileNotFoundException {
         if(input.equals("--help")) {
@@ -195,6 +192,15 @@ public class Config {
 
     public static ArrayList <Double> getDiffCaps() {
         return diffCaps;
+    }
+
+    public static String generateRandomString(int length)
+    {
+        UUID randomUUID = UUID.randomUUID();
+        String randomString = randomUUID.toString().replaceAll("_", "");
+        if(length >0 && randomString.length()>length)
+            randomString = randomString.substring(0,length);
+        return randomString;
     }
 
     public enum dataset
