@@ -33,7 +33,7 @@ public class HDFSStorage {
     {
         String tempFileName="./tempGraph.ser";
         try {
-            FileOutputStream file = new FileOutputStream(fileName);
+            FileOutputStream file = new FileOutputStream(tempFileName);
             ObjectOutputStream out = new ObjectOutputStream(file);
             out.writeObject(obj);
             out.close();
@@ -61,12 +61,12 @@ public class HDFSStorage {
             System.out.println("Uploading Done. [directory name: " + directoryName + "] [file name: " + fileName + "]");
 
             System.out.println("Cleaning up the temporary storage...");
-            File fileToBeUploaded = new File(fileName);
+            File fileToBeUploaded = new File(tempFileName);
             boolean deleted = fileToBeUploaded.delete();
             if (deleted)
                 System.out.println("All done.");
             else
-                System.out.println("Couldn't delete the temporary file: '" + fileName + "' ");
+                System.out.println("Couldn't delete the temporary file: '" + tempFileName + "' ");
             return true;
         }
         catch (Exception e) {
@@ -99,14 +99,14 @@ public class HDFSStorage {
         }
     }
 
-    public Object downloadObject(String bucketName, String key)
+    public static Object downloadObject(String directoryName, String fileName)
     {
 
 
         return null;
     }
 
-    public StringBuilder downloadWholeTextFile(String directoryName, String fileName) throws IOException {
+    public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) throws IOException {
 
         Configuration configuration = new Configuration();
         configuration.set(Config.HDFSName, Config.HDFSAddress);

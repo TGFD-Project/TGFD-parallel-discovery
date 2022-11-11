@@ -895,7 +895,7 @@ public class TGFDDiscovery {
 		System.out.println("Discovering constant TGFDs");
 
 		// Find Constant TGFDs
-		Map<Pair,ArrayList<TreeSet<Pair>>> deltaToPairsMap = new HashMap<>();
+		Map<Util.Pair,ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap = new HashMap<>();
 		ArrayList<TGFD> constantTGFDs = discoverConstantTGFDs(patternNode, literalPath.getRhs(), entities, deltaToPairsMap);
 		// TODO: Try discover general TGFD even if no constant TGFD candidate met support threshold
 		System.out.println("Constant TGFDs discovered: " + constantTGFDs.size());
@@ -925,21 +925,21 @@ public class TGFDDiscovery {
 		return tgfds;
 	}
 
-	private ArrayList<TGFD> discoverGeneralTGFD(PatternTreeNode patternTreeNode, double patternSupport, AttributeDependency literalPath, int entitiesSize, Map<Pair, ArrayList<TreeSet<Pair>>> deltaToPairsMap, LiteralTreeNode literalTreeNode) {
+	private ArrayList<TGFD> discoverGeneralTGFD(PatternTreeNode patternTreeNode, double patternSupport, AttributeDependency literalPath, int entitiesSize, Map<Discovery.Util.Pair, ArrayList<TreeSet<Discovery.Util.Pair>>> deltaToPairsMap, LiteralTreeNode literalTreeNode) {
 
 		ArrayList<TGFD> tgfds = new ArrayList<>();
 
 		System.out.println("Number of delta: " + deltaToPairsMap.keySet().size());
-		for (Pair deltaPair : deltaToPairsMap.keySet()) {
+		for (Discovery.Util.Pair deltaPair : deltaToPairsMap.keySet()) {
 			System.out.println("Constant delta: " + deltaPair);
 		}
 
 		System.out.println("Delta to Pairs map...");
 		int numOfEntitiesWithDeltas = 0;
 		int numOfPairs = 0;
-		for (Entry<Pair, ArrayList<TreeSet<Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
+		for (Entry<Discovery.Util.Pair, ArrayList<TreeSet<Discovery.Util.Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
 			numOfEntitiesWithDeltas += deltaToPairsEntry.getValue().size();
-			for (TreeSet<Pair> pairSet : deltaToPairsEntry.getValue()) {
+			for (TreeSet<Discovery.Util.Pair> pairSet : deltaToPairsEntry.getValue()) {
 				System.out.println(deltaToPairsEntry.getKey()+":"+pairSet);
 				numOfPairs += pairSet.size();
 			}
@@ -949,29 +949,29 @@ public class TGFDDiscovery {
 
 
 		// Find intersection delta
-		HashMap<Pair, ArrayList<Pair>> intersections = new HashMap<>();
+		HashMap<Util.Pair, ArrayList<Util.Pair>> intersections = new HashMap<>();
 		int currMin = 0;
 		int currMax = this.getNumOfSnapshots() - 1;
 		// TODO: Verify if TreeSet<Pair> is being sorted correctly
 		// TODO: Does this method only produce intervals (x,y), where x == y ?
-		ArrayList<Pair> currSatisfyingAttrValues = new ArrayList<>();
-		for (Pair deltaPair: deltaToPairsMap.keySet().stream().sorted().collect(Collectors.toList())) {
+		ArrayList<Util.Pair> currSatisfyingAttrValues = new ArrayList<>();
+		for (Util.Pair deltaPair: deltaToPairsMap.keySet().stream().sorted().collect(Collectors.toList())) {
 			if (Math.max(currMin, deltaPair.min()) <= Math.min(currMax, deltaPair.max())) {
 				currMin = Math.max(currMin, deltaPair.min());
 				currMax = Math.min(currMax, deltaPair.max());
 //				currSatisfyingAttrValues.add(satisfyingPairsSet.get(index)); // By axiom 4
 				continue;
 			}
-			for (Entry<Pair, ArrayList<TreeSet<Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
-				for (TreeSet<Pair> satisfyingPairSet : deltaToPairsEntry.getValue()) {
-					for (Pair satisfyingPair : satisfyingPairSet) {
+			for (Entry<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
+				for (TreeSet<Util.Pair> satisfyingPairSet : deltaToPairsEntry.getValue()) {
+					for (Util.Pair satisfyingPair : satisfyingPairSet) {
 						if (satisfyingPair.max() - satisfyingPair.min() >= currMin && satisfyingPair.max() - satisfyingPair.min() <= currMax) {
-							currSatisfyingAttrValues.add(new Pair(satisfyingPair.min(), satisfyingPair.max()));
+							currSatisfyingAttrValues.add(new Util.Pair(satisfyingPair.min(), satisfyingPair.max()));
 						}
 					}
 				}
 			}
-			intersections.putIfAbsent(new Pair(currMin, currMax), currSatisfyingAttrValues);
+			intersections.putIfAbsent(new Util.Pair(currMin, currMax), currSatisfyingAttrValues);
 			currSatisfyingAttrValues = new ArrayList<>();
 			currMin = 0;
 			currMax = this.getNumOfSnapshots() - 1;
@@ -981,33 +981,33 @@ public class TGFDDiscovery {
 //				currSatisfyingAttrValues.add(satisfyingPairsSet.get(index));
 			}
 		}
-		for (Entry<Pair, ArrayList<TreeSet<Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
-			for (TreeSet<Pair> satisfyingPairSet : deltaToPairsEntry.getValue()) {
-				for (Pair satisfyingPair : satisfyingPairSet) {
+		for (Entry<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsEntry : deltaToPairsMap.entrySet()) {
+			for (TreeSet<Util.Pair> satisfyingPairSet : deltaToPairsEntry.getValue()) {
+				for (Util.Pair satisfyingPair : satisfyingPairSet) {
 					if (satisfyingPair.max() - satisfyingPair.min() >= currMin && satisfyingPair.max() - satisfyingPair.min() <= currMax) {
-						currSatisfyingAttrValues.add(new Pair(satisfyingPair.min(), satisfyingPair.max()));
+						currSatisfyingAttrValues.add(new Util.Pair(satisfyingPair.min(), satisfyingPair.max()));
 					}
 				}
 			}
 		}
-		intersections.putIfAbsent(new Pair(currMin, currMax), currSatisfyingAttrValues);
+		intersections.putIfAbsent(new Util.Pair(currMin, currMax), currSatisfyingAttrValues);
 
-		ArrayList<Entry<Pair, ArrayList<Pair>>> sortedIntersections = new ArrayList<>(intersections.entrySet());
-		sortedIntersections.sort(new Comparator<Entry<Pair, ArrayList<Pair>>>() {
+		ArrayList<Entry<Util.Pair, ArrayList<Util.Pair>>> sortedIntersections = new ArrayList<>(intersections.entrySet());
+		sortedIntersections.sort(new Comparator<Entry<Util.Pair, ArrayList<Util.Pair>>>() {
 			@Override
-			public int compare(Entry<Pair, ArrayList<Pair>> o1, Entry<Pair, ArrayList<Pair>> o2) {
+			public int compare(Entry<Util.Pair, ArrayList<Util.Pair>> o1, Entry<Util.Pair, ArrayList<Util.Pair>> o2) {
 				return o2.getValue().size() - o1.getValue().size();
 			}
 		});
 
 		System.out.println("Candidate deltas for general TGFD:");
-		for (Entry<Pair, ArrayList<Pair>> intersection : sortedIntersections) {
+		for (Entry<Util.Pair, ArrayList<Util.Pair>> intersection : sortedIntersections) {
 			System.out.println(intersection.getKey());
 		}
 
 		System.out.println("Evaluating candidate deltas for general TGFD...");
-		for (Entry<Pair, ArrayList<Pair>> intersection : sortedIntersections) {
-			Pair candidateDelta = intersection.getKey();
+		for (Entry<Util.Pair, ArrayList<Util.Pair>> intersection : sortedIntersections) {
+			Util.Pair candidateDelta = intersection.getKey();
 			int generalMin = candidateDelta.min();
 			int generalMax = candidateDelta.max();
 			System.out.println("Calculating support for candidate general TGFD candidate delta: " + intersection.getKey());
@@ -1047,7 +1047,7 @@ public class TGFDDiscovery {
 		return tgfds;
 	}
 
-	private ArrayList<TGFD> discoverConstantTGFDs(PatternTreeNode patternNode, ConstantLiteral yLiteral, Map<Set<ConstantLiteral>, ArrayList<Entry<ConstantLiteral, List<Integer>>>> entities, Map<Pair, ArrayList<TreeSet<Pair>>> deltaToPairsMap) {
+	private ArrayList<TGFD> discoverConstantTGFDs(PatternTreeNode patternNode, ConstantLiteral yLiteral, Map<Set<ConstantLiteral>, ArrayList<Entry<ConstantLiteral, List<Integer>>>> entities, Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap) {
 		long discoverConstantTGFDsTime = System.currentTimeMillis(); long supersetPathCheckingTimeForThisDependency = 0;
 		ArrayList<TGFD> tgfds = new ArrayList<>();
 		String yVertexType = yLiteral.getVertexType();
@@ -1087,11 +1087,11 @@ public class TGFDDiscovery {
 			}
 
             System.out.println("Computing candidate delta for RHS value...\n" + rhsAttrValuesTimestampsSortedByFreq.get(0).getKey());
-            ArrayList<Pair> candidateDeltas = new ArrayList<>();
+            ArrayList<Util.Pair> candidateDeltas = new ArrayList<>();
             if (rhsAttrValuesTimestampsSortedByFreq.size() == 1) {
 				this.numOfConsistentRHS += 1;
 				List<Integer> timestampCounts = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
-				Pair candidateDelta = getMinMaxPair(timestampCounts);
+				Util.Pair candidateDelta = getMinMaxPair(timestampCounts);
 				if (candidateDelta == null) continue;
 				candidateDeltas.add(candidateDelta);
 			} else if (rhsAttrValuesTimestampsSortedByFreq.size() > 1) {
@@ -1106,25 +1106,25 @@ public class TGFDDiscovery {
 			// Compute TGFD support
 			Delta candidateTGFDdelta;
 			double candidateTGFDsupport = 0;
-			Pair mostSupportedDelta = null;
-			TreeSet<Pair> mostSupportedSatisfyingPairs = null;
-			for (Pair candidateDelta : candidateDeltas) {
+			Util.Pair mostSupportedDelta = null;
+			TreeSet<Util.Pair> mostSupportedSatisfyingPairs = null;
+			for (Util.Pair candidateDelta : candidateDeltas) {
 				int minDistance = candidateDelta.min();
 				int maxDistance = candidateDelta.max();
 				if (minDistance <= maxDistance) {
 					System.out.println("Calculating support for candidate delta ("+minDistance+","+maxDistance+")");
 					double numerator;
 					List<Integer> timestampCounts = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
-					TreeSet<Pair> satisfyingPairs = new TreeSet<>();
+					TreeSet<Util.Pair> satisfyingPairs = new TreeSet<>();
 					for (int index = 0; index < timestampCounts.size(); index++) {
 						if (timestampCounts.get(index) == 0)
 							continue;
 						else if (timestampCounts.get(index) > 1 && 0 >= minDistance && 0 <= maxDistance)
-							satisfyingPairs.add(new Pair(index, index));
+							satisfyingPairs.add(new Util.Pair(index, index));
 						for (int j = index + 1; j < timestampCounts.size(); j++) {
 							if (timestampCounts.get(j) > 0) {
 								if (j - index >= minDistance && j - index <= maxDistance) {
-									satisfyingPairs.add(new Pair(index, j));
+									satisfyingPairs.add(new Util.Pair(index, j));
 								}
 							}
 						}
@@ -1198,7 +1198,7 @@ public class TGFDDiscovery {
 		return tgfds;
 	}
 
-	private void findCandidateDeltasForMostFreqRHS(ArrayList<Entry<ConstantLiteral, List<Integer>>> rhsAttrValuesTimestampsSortedByFreq, ArrayList<Pair> candidateDeltas) {
+	private void findCandidateDeltasForMostFreqRHS(ArrayList<Entry<ConstantLiteral, List<Integer>>> rhsAttrValuesTimestampsSortedByFreq, ArrayList<Util.Pair> candidateDeltas) {
 		List<Integer> timestampCountOfMostFreqRHS = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
 		Integer minExclusionDistance = null;
 		Integer maxExclusionDistance = null;
@@ -1222,15 +1222,15 @@ public class TGFDDiscovery {
 				break;
 		}
 		if (minExclusionDistance != null && minExclusionDistance > 0) {
-			candidateDeltas.add(new Pair(0, minExclusionDistance-1));
+			candidateDeltas.add(new Util.Pair(0, minExclusionDistance-1));
 		}
 		if (maxExclusionDistance != null && maxExclusionDistance < this.getNumOfSnapshots()-1) {
-			candidateDeltas.add(new Pair(maxExclusionDistance+1, this.getNumOfSnapshots()-1));
+			candidateDeltas.add(new Util.Pair(maxExclusionDistance+1, this.getNumOfSnapshots()-1));
 		}
 	}
 
 	@Nullable
-	private Pair getMinMaxPair(List<Integer> timestampCounts) {
+	private Util.Pair getMinMaxPair(List<Integer> timestampCounts) {
 		Integer minDistance = null;
 		Integer maxDistance = null;
 		if (timestampCounts.stream().anyMatch(count -> count > 1)) {
@@ -1277,7 +1277,7 @@ public class TGFDDiscovery {
 			System.out.println("Not enough timestamped matches found for entity.");
 			return null;
 		}
-		return new Pair(minDistance, maxDistance);
+		return new Util.Pair(minDistance, maxDistance);
 	}
 
 	public ArrayList<TGFD> getDummyVertexTypeTGFDs() {
@@ -2178,52 +2178,52 @@ public class TGFDDiscovery {
 		isIncremental = incremental;
 	}
 
-	public static class Pair implements Comparable<Pair> {
-		private final Integer min;
-		private final Integer max;
-
-		public Pair(int min, int max) {
-			this.min = min;
-			this.max = max;
-		}
-
-		public Integer min() {
-			return min;
-		}
-
-		public Integer max() {
-			return max;
-		}
-
-		@Override
-		public int compareTo(@NotNull TGFDDiscovery.Pair o) {
-			if (this.min.equals(o.min)) {
-				return this.max.compareTo(o.max);
-			} else {
-				return this.min.compareTo(o.min);
-			}
-		}
-
-		@Override
-		public String toString() {
-			return "(" + min +
-					", " + max +
-					')';
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-			Pair pair = (Pair) o;
-			return min.equals(pair.min) && max.equals(pair.max);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(min, max);
-		}
-	}
+//	public static class Pair implements Comparable<Pair> {
+//		private final Integer min;
+//		private final Integer max;
+//
+//		public Pair(int min, int max) {
+//			this.min = min;
+//			this.max = max;
+//		}
+//
+//		public Integer min() {
+//			return min;
+//		}
+//
+//		public Integer max() {
+//			return max;
+//		}
+//
+//		@Override
+//		public int compareTo(@NotNull TGFDDiscovery.Pair o) {
+//			if (this.min.equals(o.min)) {
+//				return this.max.compareTo(o.max);
+//			} else {
+//				return this.min.compareTo(o.min);
+//			}
+//		}
+//
+//		@Override
+//		public String toString() {
+//			return "(" + min +
+//					", " + max +
+//					')';
+//		}
+//
+//		@Override
+//		public boolean equals(Object o) {
+//			if (this == o) return true;
+//			if (o == null || getClass() != o.getClass()) return false;
+//			Pair pair = (Pair) o;
+//			return min.equals(pair.min) && max.equals(pair.max);
+//		}
+//
+//		@Override
+//		public int hashCode() {
+//			return Objects.hash(min, max);
+//		}
+//	}
 
 	public void vSpawnInit() {
 		this.patternTree = new PatternTree();
