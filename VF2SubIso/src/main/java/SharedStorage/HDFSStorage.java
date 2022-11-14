@@ -133,5 +133,22 @@ public class HDFSStorage {
         return sb;
     }
 
+    public static Object downloadHDFSFile(String directoryName, String fileName) {
+        Object obj = null;
+        try {
+            Configuration configuration = new Configuration();
+            configuration.set(Config.HDFSName, Config.HDFSAddress);
+            FileSystem fileSystem = FileSystem.get(configuration);
 
+            FSDataInputStream inputStream = fileSystem.open(new Path(directoryName, fileName));
+            ObjectInputStream in = new ObjectInputStream(inputStream);
+            obj = in.readObject();
+
+            in.close();
+            inputStream.close();
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+        return obj;
+    }
 }
