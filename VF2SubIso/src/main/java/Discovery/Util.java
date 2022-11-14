@@ -1,7 +1,9 @@
 package Discovery;
 
 import ICs.TGFD;
+import Infra.ConstantLiteral;
 import Infra.PatternTree;
+import Infra.Vertex;
 import Loader.GraphLoader;
 import org.apache.commons.cli.*;
 import org.apache.jena.rdf.model.Model;
@@ -120,7 +122,7 @@ public class Util {
     public static boolean isIncremental = false;
 
 
-    public static void Config(String []args)
+    public static void config(String []args)
     {
         String timeAndDateStamp = ZonedDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("uuuu.MM.dd.HH.mm.ss"));
         experimentStartTimeAndDateStamp = timeAndDateStamp;
@@ -196,14 +198,14 @@ public class Util {
         generatek0Tgfds = (cmd.hasOption("k0"));
         skipK1 = (cmd.hasOption("skipK1"));
 
-        T = (cmd.getOptionValue("t") == null ? TGFDDiscovery.DEFAULT_NUM_OF_SNAPSHOTS : Integer.parseInt(cmd.getOptionValue("t")));
+        T = (cmd.getOptionValue("t") == null ? Util.DEFAULT_NUM_OF_SNAPSHOTS : Integer.parseInt(cmd.getOptionValue("t")));
         numOfSnapshots = (T);
-        gamma = (cmd.getOptionValue("a") == null ? TGFDDiscovery.DEFAULT_GAMMA : Integer.parseInt(cmd.getOptionValue("a")));
+        gamma = (cmd.getOptionValue("a") == null ? Util.DEFAULT_GAMMA : Integer.parseInt(cmd.getOptionValue("a")));
         maxNumOfLiterals = (cmd.getOptionValue(MAX_LIT_PARAM) == null ? DEFAULT_MAX_LITERALS_NUM : Integer.parseInt(cmd.getOptionValue(MAX_LIT_PARAM)));
-        tgfdTheta = (cmd.getOptionValue("theta") == null ? TGFDDiscovery.DEFAULT_TGFD_THETA : Double.parseDouble(cmd.getOptionValue("theta")));
+        tgfdTheta = (cmd.getOptionValue("theta") == null ? Util.DEFAULT_TGFD_THETA : Double.parseDouble(cmd.getOptionValue("theta")));
         patternTheta = (cmd.getOptionValue("pTheta") == null ? tgfdTheta : Double.parseDouble(cmd.getOptionValue("pTheta")));
-        k = (cmd.getOptionValue("k") == null ? TGFDDiscovery.DEFAULT_K : Integer.parseInt(cmd.getOptionValue("k")));
-        frequentSetSize = (cmd.getOptionValue(FREQUENT_SIZE_SET_PARAM) == null ? TGFDDiscovery.DEFAULT_FREQUENT_SIZE_SET : Integer.parseInt(cmd.getOptionValue(FREQUENT_SIZE_SET_PARAM)));
+        k = (cmd.getOptionValue("k") == null ? Util.DEFAULT_K : Integer.parseInt(cmd.getOptionValue("k")));
+        frequentSetSize = (cmd.getOptionValue(FREQUENT_SIZE_SET_PARAM) == null ? Util.DEFAULT_FREQUENT_SIZE_SET : Integer.parseInt(cmd.getOptionValue(FREQUENT_SIZE_SET_PARAM)));
 
         initializeTgfdLists();
 
@@ -401,9 +403,9 @@ public class Util {
         return timestampToFilesMap;
     }
 
-    public void setCurrentVSpawnLevel(int currentVSpawnLevel) {
-        this.currentVSpawnLevel = currentVSpawnLevel;
-        System.out.println("VSpawn level " + this.currentVSpawnLevel);
+    public static void setCurrentVSpawnLevel(int currentVSpawnLevel) {
+        Util.currentVSpawnLevel = currentVSpawnLevel;
+        System.out.println("VSpawn level " + Util.currentVSpawnLevel);
     }
 
     public int getK() {
@@ -422,25 +424,25 @@ public class Util {
         return totalVSpawnTime;
     }
 
-    public Long getTotalVSpawnTime(int index) {
-        return index < this.getTotalVSpawnTime().size() ? this.getTotalVSpawnTime().get(index) : (long)0;
+    private static Long getTotalVSpawnTime(int index) {
+        return index < totalVSpawnTime.size() ? totalVSpawnTime.get(index) : (long)0;
     }
 
-    public void addToTotalVSpawnTime(long vSpawnTime) {
+    public static void addToTotalVSpawnTime(long vSpawnTime) {
         TGFDDiscovery.printWithTime("vSpawn", vSpawnTime);
-        addToValueInListAtIndex(this.getTotalVSpawnTime(), this.currentVSpawnLevel, vSpawnTime);
+        addToValueInListAtIndex(Util.totalVSpawnTime, Util.currentVSpawnLevel, vSpawnTime);
     }
 
     public List<Long> getTotalMatchingTime() {
         return totalMatchingTime;
     }
 
-    public Long getTotalMatchingTime(int index) {
-        return index < this.getTotalMatchingTime().size() ? this.getTotalMatchingTime().get(index) : (long)0;
+    private static Long getTotalMatchingTime(int index) {
+        return index < totalMatchingTime.size() ? totalMatchingTime.get(index) : (long)0;
     }
 
-    public void addToTotalMatchingTime(long matchingTime) {
-        addToValueInListAtIndex(this.getTotalMatchingTime(), this.currentVSpawnLevel, matchingTime);
+    public static void addToTotalMatchingTime(long matchingTime) {
+        addToValueInListAtIndex(Util.totalMatchingTime, Util.currentVSpawnLevel, matchingTime);
     }
 
     public boolean hasSupportPruning() {
@@ -520,7 +522,7 @@ public class Util {
         return timestampToFilesMap;
     }
 
-    private static void setTimestampToFilesMap(List<Map.Entry<String, List<String>>> timestampToFilesMap) {
+    public static void setTimestampToFilesMap(List<Map.Entry<String, List<String>>> timestampToFilesMap) {
         timestampToFilesMap.sort(Map.Entry.comparingByKey());
         timestampToFilesMap = timestampToFilesMap.subList(0,Math.min(timestampToFilesMap.size(),T));
     }
@@ -754,23 +756,23 @@ public class Util {
         return totalSupergraphCheckingTime;
     }
 
-    public Long getTotalSupergraphCheckingTime(int index) {
-        return returnLongAtIndexIfExistsElseZero(this.getTotalSupergraphCheckingTime(), index);
+    private static Long getTotalSupergraphCheckingTime(int index) {
+        return returnLongAtIndexIfExistsElseZero(totalSupergraphCheckingTime, index);
     }
 
-    public void addToTotalSupergraphCheckingTime(long supergraphCheckingTime) {
-        addToValueInListAtIndex(this.getTotalSupergraphCheckingTime(), this.currentVSpawnLevel, supergraphCheckingTime);
+    public static void addToTotalSupergraphCheckingTime(long supergraphCheckingTime) {
+        addToValueInListAtIndex(Util.totalSupergraphCheckingTime, Util.currentVSpawnLevel, supergraphCheckingTime);
     }
 
     public List<Long> getTotalVisitedPathCheckingTime() {
         return totalVisitedPathCheckingTime;
     }
 
-    public Long getTotalVisitedPathCheckingTime(int index) {
+    private static Long getTotalVisitedPathCheckingTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalVisitedPathCheckingTime, index);
     }
 
-    public void addToTotalVisitedPathCheckingTime(long visitedPathCheckingTime) {
+    public static void addToTotalVisitedPathCheckingTime(long visitedPathCheckingTime) {
         addToValueInListAtIndex(totalVisitedPathCheckingTime, currentVSpawnLevel, visitedPathCheckingTime);
     }
 
@@ -785,8 +787,8 @@ public class Util {
         return totalSupersetPathCheckingTime;
     }
 
-    public Long getTotalSupersetPathCheckingTime(int index) {
-        return returnLongAtIndexIfExistsElseZero(this.getTotalSupersetPathCheckingTime(), index);
+    private static Long getTotalSupersetPathCheckingTime(int index) {
+        return returnLongAtIndexIfExistsElseZero(totalSupersetPathCheckingTime, index);
     }
 
     public static void addToTotalSupersetPathCheckingTime(long supersetPathCheckingTime) {
@@ -797,7 +799,7 @@ public class Util {
         return totalFindEntitiesTime;
     }
 
-    public Long getTotalFindEntitiesTime(int index) {
+    private static Long getTotalFindEntitiesTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalFindEntitiesTime, index);
     }
 
@@ -805,7 +807,7 @@ public class Util {
         return totalDiscoverConstantTGFDsTime;
     }
 
-    public Long getTotalDiscoverConstantTGFDsTime(int index) {
+    private static Long getTotalDiscoverConstantTGFDsTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalDiscoverConstantTGFDsTime, index);
     }
 
@@ -817,8 +819,8 @@ public class Util {
         return totalDiscoverGeneralTGFDTime;
     }
 
-    public Long getTotalDiscoverGeneralTGFDTime(int index) {
-        return returnLongAtIndexIfExistsElseZero(this.totalDiscoverGeneralTGFDTime, index);
+    private static Long getTotalDiscoverGeneralTGFDTime(int index) {
+        return returnLongAtIndexIfExistsElseZero(Util.totalDiscoverGeneralTGFDTime, index);
     }
 
     public static void addToTotalDiscoverGeneralTGFDTime(long discoverGeneralTGFDTime) {
@@ -853,28 +855,28 @@ public class Util {
         this.fastMatching = fastMatching;
     }
 
-    public Double getMedianPatternSupportsList(int index) {
-        return returnDoubleAtIndexIfExistsElseZero(this.medianPatternSupportsList, index);
+    public static Double getMedianPatternSupportsList(int index) {
+        return returnDoubleAtIndexIfExistsElseZero(Util.medianPatternSupportsList, index);
     }
 
-    public void addToMedianPatternSupportsList(double medianPatternSupport) {
-        setValueInListAtIndex(this.medianPatternSupportsList, this.currentVSpawnLevel, medianPatternSupport);
+    private static void addToMedianPatternSupportsList(double medianPatternSupport) {
+        setValueInListAtIndex(Util.medianPatternSupportsList, Util.currentVSpawnLevel, medianPatternSupport);
     }
 
-    public Double getMedianConstantTgfdSupportsList(int index) {
-        return returnDoubleAtIndexIfExistsElseZero(this.medianConstantTgfdSupportsList, index);
+    public static Double getMedianConstantTgfdSupportsList(int index) {
+        return returnDoubleAtIndexIfExistsElseZero(Util.medianConstantTgfdSupportsList, index);
     }
 
-    public void addToMedianConstantTgfdSupportsList(double medianConstantTgfdSupport) {
-        setValueInListAtIndex(this.medianConstantTgfdSupportsList, this.currentVSpawnLevel, medianConstantTgfdSupport);
+    private static void addToMedianConstantTgfdSupportsList(double medianConstantTgfdSupport) {
+        setValueInListAtIndex(Util.medianConstantTgfdSupportsList, Util.currentVSpawnLevel, medianConstantTgfdSupport);
     }
 
-    public Double getMedianGeneralTgfdSupportsList(int index) {
-        return returnDoubleAtIndexIfExistsElseZero(this.medianGeneralTgfdSupportsList, index);
+    public static Double getMedianGeneralTgfdSupportsList(int index) {
+        return returnDoubleAtIndexIfExistsElseZero(Util.medianGeneralTgfdSupportsList, index);
     }
 
-    public void addToMedianGeneralTgfdSupportsList(double medianGeneralTgfdSupport) {
-        setValueInListAtIndex(this.medianGeneralTgfdSupportsList, this.currentVSpawnLevel, medianGeneralTgfdSupport);
+    private static void addToMedianGeneralTgfdSupportsList(double medianGeneralTgfdSupport) {
+        setValueInListAtIndex(Util.medianGeneralTgfdSupportsList, Util.currentVSpawnLevel, medianGeneralTgfdSupport);
     }
 
     public static Double returnDoubleAtIndexIfExistsElseZero(List<Double> list, int index) {
@@ -897,7 +899,7 @@ public class Util {
         return vertexHistogram;
     }
 
-    public Map<String, Set<String>> getVertexTypesToActiveAttributesMap() {
+    public static Map<String, Set<String>> getVertexTypesToActiveAttributesMap() {
         return vertexTypesToActiveAttributesMap;
     }
 
@@ -915,6 +917,11 @@ public class Util {
 
     public void setVertexTypesToActiveAttributesMap(Map<String, Set<String>> vertexTypesToActiveAttributesMap) {
         this.vertexTypesToActiveAttributesMap = vertexTypesToActiveAttributesMap;
+    }
+
+    public static void markAsKexperiment() {
+        experimentName = "vary-k";
+        kExperiment = (true);
     }
 
     public void setVertexHistogram(Map<String, Integer> vertexHistogram) {
@@ -945,6 +952,184 @@ public class Util {
         isIncremental = incremental;
     }
 
+    public static void printTgfdsToFile(String experimentName, ArrayList<TGFD> tgfds) {
+        tgfds.sort(new Comparator<TGFD>() {
+            @Override
+            public int compare(TGFD o1, TGFD o2) {
+                return o2.getSupport().compareTo(o1.getSupport());
+            }
+        });
+        System.out.println("Printing TGFDs to file for k = " + currentVSpawnLevel);
+        try {
+            PrintStream printStream = new PrintStream(experimentName + "-tgfds" + experimentStartTimeAndDateStamp + ".txt");
+            printStream.println("k = " + currentVSpawnLevel);
+            printStream.println("# of TGFDs generated = " + tgfds.size());
+            for (TGFD tgfd : tgfds) {
+                printStream.println(tgfd);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void printExperimentRuntimestoFile() {
+        try {
+            PrintStream printStream = new PrintStream(Util.experimentName + "-runtimes-" + Util.experimentStartTimeAndDateStamp + ".txt");
+            for (int i  = 0; i < Util.kRuntimes.size(); i++) {
+                printStream.print("k = " + i);
+                printStream.println(", execution time = " + Util.kRuntimes.get(i));
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static void printSupportStatisticsForThisSnapshot(int level) {
+        divertOutputToSummaryFile();
+        System.out.println("----------------Support Statistics for vSpawn level "+level+"-----------------");
+        System.out.println("Median Pattern Support: " + Util.getMedianPatternSupportsList(level));
+        System.out.println("Median Constant TGFD Support: " + Util.getMedianConstantTgfdSupportsList(level));
+        System.out.println("Median General TGFD Support: " + Util.getMedianGeneralTgfdSupportsList(level));
+        divertOutputToLogFile();
+    }
+
+    public static void printSupportStatisticsForThisSnapshot() {
+        divertOutputToSummaryFile();
+        System.out.println("----------------Support Statistics for vSpawn level "+currentVSpawnLevel+"-----------------");
+
+        Collections.sort(Util.patternSupportsListForThisSnapshot);
+        Collections.sort(Util.constantTgfdSupportsListForThisSnapshot);
+        Collections.sort(Util.generalTgfdSupportsListForThisSnapshot);
+
+        double medianPatternSupport = 0;
+        if (Util.patternSupportsListForThisSnapshot.size() > 0) {
+            medianPatternSupport = Util.patternSupportsListForThisSnapshot.size() % 2 != 0 ? Util.patternSupportsListForThisSnapshot.get(Util.patternSupportsListForThisSnapshot.size() / 2) : ((Util.patternSupportsListForThisSnapshot.get(Util.patternSupportsListForThisSnapshot.size() / 2) + Util.patternSupportsListForThisSnapshot.get(Util.patternSupportsListForThisSnapshot.size() / 2 - 1)) / 2);
+        }
+        Util.addToMedianPatternSupportsList(medianPatternSupport);
+        double medianConstantTgfdSupport = 0;
+        if (Util.constantTgfdSupportsListForThisSnapshot.size() > 0) {
+            medianConstantTgfdSupport = Util.constantTgfdSupportsListForThisSnapshot.size() % 2 != 0 ? Util.constantTgfdSupportsListForThisSnapshot.get(Util.constantTgfdSupportsListForThisSnapshot.size() / 2) : ((Util.constantTgfdSupportsListForThisSnapshot.get(Util.constantTgfdSupportsListForThisSnapshot.size() / 2) + Util.constantTgfdSupportsListForThisSnapshot.get(Util.constantTgfdSupportsListForThisSnapshot.size() / 2 - 1)) / 2);
+        }
+        Util.addToMedianConstantTgfdSupportsList(medianConstantTgfdSupport);
+        double medianGeneralTgfdSupport = 0;
+        if (Util.generalTgfdSupportsListForThisSnapshot.size() > 0) {
+            medianGeneralTgfdSupport = Util.generalTgfdSupportsListForThisSnapshot.size() % 2 != 0 ? Util.generalTgfdSupportsListForThisSnapshot.get(Util.generalTgfdSupportsListForThisSnapshot.size() / 2) : ((Util.generalTgfdSupportsListForThisSnapshot.get(Util.generalTgfdSupportsListForThisSnapshot.size() / 2) + Util.generalTgfdSupportsListForThisSnapshot.get(Util.generalTgfdSupportsListForThisSnapshot.size() / 2 - 1)) / 2);
+        }
+        Util.addToMedianGeneralTgfdSupportsList(medianGeneralTgfdSupport);
+
+        System.out.println("Median Pattern Support: " + medianPatternSupport);
+        System.out.println("Median Constant TGFD Support: " + medianConstantTgfdSupport);
+        System.out.println("Median General TGFD Support: " + medianGeneralTgfdSupport);
+        // Reset for each level of vSpawn
+        Util.patternSupportsListForThisSnapshot = new ArrayList<>();
+        Util.constantTgfdSupportsListForThisSnapshot = new ArrayList<>();
+        Util.generalTgfdSupportsListForThisSnapshot = new ArrayList<>();
+        divertOutputToLogFile();
+    }
+
+    public static void printTimeStatisticsForThisSnapshot(int level) {
+        divertOutputToSummaryFile();
+        System.out.println("----------------Time Statistics for vSpawn level "+level+"-----------------");
+        printWithTime("Total vSpawn", Util.getTotalVSpawnTime(level)-Util.getTotalSupergraphCheckingTime(level));
+        printWithTime("Total Supergraph Checking", Util.getTotalSupergraphCheckingTime(level));
+        printWithTime("Total Matching", Util.getTotalMatchingTime(level));
+        printWithTime("Total Visited Path Checking", Util.getTotalVisitedPathCheckingTime(level));
+        printWithTime("Total Superset Path Checking", Util.getTotalSupersetPathCheckingTime(level));
+        printWithTime("Total Find Entities", Util.getTotalFindEntitiesTime(level));
+        printWithTime("Total Discover Constant TGFDs", Util.getTotalDiscoverConstantTGFDsTime(level));
+        printWithTime("Total Discover General TGFD", Util.getTotalDiscoverGeneralTGFDTime(level));
+        printWithTime("As of k = " + level + ", execution", Util.kRuntimes.get(level));
+        divertOutputToLogFile();
+    }
+
+    public static void printTimeStatistics() {
+        divertOutputToSummaryFile();
+        System.out.println("----------------Total Time Statistics-----------------");
+        printWithTime("Total Histogram", Util.totalHistogramTime);
+        printWithTime("Total vSpawn", Util.totalVSpawnTime.stream().reduce(0L, Long::sum)-Util.totalSupergraphCheckingTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Supergraph Checking", Util.totalSupergraphCheckingTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Matching", Util.totalMatchingTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Visited Path Checking", Util.totalVisitedPathCheckingTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Superset Path Checking", Util.totalSupersetPathCheckingTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Find Entities", Util.totalFindEntitiesTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Discover Constant TGFDs", Util.totalDiscoverConstantTGFDsTime.stream().reduce(0L, Long::sum));
+        printWithTime("Total Discover General TGFD", Util.totalDiscoverGeneralTGFDTime.stream().reduce(0L, Long::sum));
+        System.out.println("----------------Additional Statistics-----------------");
+        System.out.println("Number of candidate constant TGFDs: "+(Util.numOfConsistentRHS+Util.rhsInconsistencies.size()));
+        System.out.println("Number of consistent candidate constant TGFDs: "+Util.numOfConsistentRHS);
+        System.out.println("Number of inconsistent candidate constant TGFDs: "+Util.rhsInconsistencies.size());
+        System.out.println("Average number of inconsistencies per inconsistent candidate constant TGFD: "+((double)Util.rhsInconsistencies.stream().reduce(0, Integer::sum) / (double)Util.rhsInconsistencies.size()));
+        System.out.println("Number of candidate general TGFDs: "+Util.numOfCandidateGeneralTGFDs);
+        List<Integer> intervalWidths = Util.discoveredTgfds.stream().map(list -> list.stream().map(tgfd -> tgfd.getDelta() == null ? 0 : tgfd.getDelta().getIntervalWidth()).collect(Collectors.toList())).flatMap(List::stream).sorted(Comparator.naturalOrder()).collect(Collectors.toList());
+        if (intervalWidths.size() > 0) {
+            System.out.println("Minimum delta interval width: " + intervalWidths.get(0));
+            System.out.println("Maximum delta interval width: " + intervalWidths.get(intervalWidths.size() - 1));
+            System.out.println("Average delta interval width: "+intervalWidths.stream().reduce(0, Integer::sum)/intervalWidths.size());
+        } else {
+            System.out.println("Cannot report statistics on delta interval widths. No TGFDs found in dataset");
+        }
+    }
+
+    private static void divertOutputToSummaryFile() {
+        if (printToLogFile) {
+            String fileName = "tgfd-discovery-summary-" + experimentStartTimeAndDateStamp + ".txt";
+            if (Util.summaryStream == null) {
+                try {
+                    Util.summaryStream = new PrintStream(fileName);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            divertOutputToStream(Util.summaryStream);
+        }
+    }
+
+
+    public static HashSet<ConstantLiteral> getActiveAttributesInPattern(Set<Vertex> vertexSet, boolean considerURI) {
+        HashMap<String, HashSet<String>> patternVerticesAttributes = new HashMap<>();
+        for (Vertex vertex : vertexSet) {
+            for (String vertexType : vertex.getTypes()) {
+                patternVerticesAttributes.put(vertexType, new HashSet<>());
+                Set<String> attrNameSet = Util.getVertexTypesToActiveAttributesMap().get(vertexType);
+                for (String attrName : attrNameSet) {
+                    patternVerticesAttributes.get(vertexType).add(attrName);
+                }
+            }
+        }
+        HashSet<ConstantLiteral> literals = new HashSet<>();
+        for (String vertexType : patternVerticesAttributes.keySet()) {
+            if (considerURI) literals.add(new ConstantLiteral(vertexType,"uri",null));
+            for (String attrName : patternVerticesAttributes.get(vertexType)) {
+                ConstantLiteral literal = new ConstantLiteral(vertexType, attrName, null);
+                literals.add(literal);
+            }
+        }
+        return literals;
+    }
+
+    public static boolean literalPathIsMissingTypesInPattern(ArrayList<ConstantLiteral> parentsPathToRoot, Set<Vertex> patternVertexSet) {
+        for (Vertex v : patternVertexSet) {
+            boolean missingType = true;
+            for (ConstantLiteral literal : parentsPathToRoot) {
+                if (literal.getVertexType().equals(v.getTypes().iterator().next())) {
+                    missingType = false;
+                }
+            }
+            if (missingType) return true;
+        }
+        return false;
+    }
+
+    public static boolean isUsedVertexType(String vertexType, ArrayList<ConstantLiteral> parentsPathToRoot) {
+        for (ConstantLiteral literal : parentsPathToRoot) {
+            if (literal.getVertexType().equals(vertexType)) {
+                System.out.println("Skip. Literal has a vertex type that is already part of interesting dependency.");
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static List<Integer> createEmptyArrayListOfSize(int size) {
         List<Integer> emptyArray = new ArrayList<>();

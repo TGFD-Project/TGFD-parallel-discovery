@@ -37,7 +37,7 @@ public class testHDFS {
 
         System.out.println("Now trying to upload an object");
 
-        HDFSStorage.upload("/dir1/","tempGraph", generateDataGraph());
+        VF2DataGraph t = (VF2DataGraph) HDFSStorage.downloadHDFSFile("/dir1/","tempGraph");
 
         System.out.println("upload done.");
 
