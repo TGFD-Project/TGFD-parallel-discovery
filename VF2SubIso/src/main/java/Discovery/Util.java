@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class Util {
 
-
+    //region --[Static Fields: Public]---------------------------------------
 
     public static final int DEFAULT_NUM_OF_SNAPSHOTS = 3;
     public static final String NO_REUSE_MATCHES_PARAMETER_TEXT = "noReuseMatches";
@@ -121,6 +121,7 @@ public class Util {
     public static Map<String, Set<String>> typeChangeURIs;
     public static boolean isIncremental = false;
 
+    //endregion
 
     public static void config(String []args)
     {
@@ -408,22 +409,6 @@ public class Util {
         System.out.println("VSpawn level " + Util.currentVSpawnLevel);
     }
 
-    public int getK() {
-        return k;
-    }
-
-    public int getNumOfSnapshots() {
-        return numOfSnapshots;
-    }
-
-    public double getTgfdTheta() {
-        return tgfdTheta;
-    }
-
-    public List<Long> getTotalVSpawnTime() {
-        return totalVSpawnTime;
-    }
-
     private static Long getTotalVSpawnTime(int index) {
         return index < totalVSpawnTime.size() ? totalVSpawnTime.get(index) : (long)0;
     }
@@ -431,10 +416,6 @@ public class Util {
     public static void addToTotalVSpawnTime(long vSpawnTime) {
         TGFDDiscovery.printWithTime("vSpawn", vSpawnTime);
         addToValueInListAtIndex(Util.totalVSpawnTime, Util.currentVSpawnLevel, vSpawnTime);
-    }
-
-    public List<Long> getTotalMatchingTime() {
-        return totalMatchingTime;
     }
 
     private static Long getTotalMatchingTime(int index) {
@@ -445,22 +426,6 @@ public class Util {
         addToValueInListAtIndex(Util.totalMatchingTime, Util.currentVSpawnLevel, matchingTime);
     }
 
-    public boolean hasSupportPruning() {
-        return hasSupportPruning;
-    }
-
-    public void setSupportPruning(boolean hasSupportPruning) {
-        this.hasSupportPruning = hasSupportPruning;
-    }
-
-    public boolean isSkipK1() {
-        return skipK1;
-    }
-
-    public ArrayList<ArrayList<TGFD>> getDiscoveredTgfds() {
-        return discoveredTgfds;
-    }
-
     public static void initializeTgfdLists() {
         discoveredTgfds = new ArrayList<>();
         for (int vSpawnLevel = 0; vSpawnLevel <= k; vSpawnLevel++) {
@@ -468,76 +433,10 @@ public class Util {
         }
     }
 
-    public boolean reUseMatches() {
-        return reUseMatches;
-    }
-
-    public boolean isGeneratek0Tgfds() {
-        return generatek0Tgfds;
-    }
-
-    public boolean useChangeFile() {
-        return useChangeFile;
-    }
-
-    public void setUseChangeFile(boolean useChangeFile) {
-        this.useChangeFile = useChangeFile;
-    }
-
-    public int getPreviousLevelNodeIndex() {
-        return previousLevelNodeIndex;
-    }
-
-    public void setPreviousLevelNodeIndex(int previousLevelNodeIndex) {
-        this.previousLevelNodeIndex = previousLevelNodeIndex;
-    }
-
-    public int getCandidateEdgeIndex() {
-        return candidateEdgeIndex;
-    }
-
-    public void setCandidateEdgeIndex(int candidateEdgeIndex) {
-        this.candidateEdgeIndex = candidateEdgeIndex;
-    }
-
-    public void findAndSetNumOfSnapshots() {
-        if (this.useChangeFile()) {
-            this.setNumOfSnapshots(this.getChangeFilesMap().entrySet().size() + 1);
-//			this.setNumOfSnapshots(this.getTimestampToFilesMap().size());
-        } else {
-            this.setNumOfSnapshots(this.getGraphs().size());
-        }
-        System.out.println("Number of "+this.getLoader()+" snapshots: "+this.getNumOfSnapshots());
-    }
-
-    public String getLoader() {
-        return loader;
-    }
-
-    public void setLoader(String loader) {
-        this.loader = loader;
-    }
-
-    public List<Map.Entry<String, List<String>>> getTimestampToFilesMap() {
-        return timestampToFilesMap;
-    }
 
     public static void setTimestampToFilesMap(List<Map.Entry<String, List<String>>> timestampToFilesMap) {
         timestampToFilesMap.sort(Map.Entry.comparingByKey());
         timestampToFilesMap = timestampToFilesMap.subList(0,Math.min(timestampToFilesMap.size(),T));
-    }
-
-    public int getT() {
-        return T;
-    }
-
-    public void setT(int t) {
-        this.T = t;
-    }
-
-
-    public boolean isValidationSearch() {
-        return validationSearch;
     }
 
     public String getPath() {
@@ -548,121 +447,6 @@ public class Util {
         this.path = path;
     }
 
-    public void setReUseMatches(boolean reUseMatches) {
-        this.reUseMatches = reUseMatches;
-    }
-
-    public void setValidationSearch(boolean validationSearch) {
-        this.validationSearch = validationSearch;
-    }
-
-    public long getDiscoveryStartTime() {
-        return discoveryStartTime;
-    }
-
-    public void setDiscoveryStartTime(long discoveryStartTime) {
-        this.discoveryStartTime = discoveryStartTime;
-    }
-
-    public boolean isDissolveSuperVertexTypes() {
-        return dissolveSuperVertexTypes;
-    }
-
-    public void setDissolveSuperVertexTypes(boolean dissolveSuperVertexTypes) {
-        this.dissolveSuperVertexTypes = dissolveSuperVertexTypes;
-    }
-
-    public boolean hasMinimalityPruning() {
-        return hasMinimalityPruning;
-    }
-
-    public void setMinimalityPruning(boolean hasMinimalityPruning) {
-        this.hasMinimalityPruning = hasMinimalityPruning;
-    }
-
-    public void setGeneratek0Tgfds(boolean generatek0Tgfds) {
-        this.generatek0Tgfds = generatek0Tgfds;
-    }
-
-    public void setSkipK1(boolean skipK1) {
-        this.skipK1 = skipK1;
-    }
-
-    public boolean isOnlyInterestingTGFDs() {
-        return onlyInterestingTGFDs;
-    }
-
-    public void setOnlyInterestingTGFDs(boolean onlyInterestingTGFDs) {
-        this.onlyInterestingTGFDs = onlyInterestingTGFDs;
-    }
-
-    public boolean iskExperiment() {
-        return kExperiment;
-    }
-
-    public void setkExperiment(boolean kExperiment) {
-        this.kExperiment = kExperiment;
-    }
-
-    public List<GraphLoader> getGraphs() {
-        return graphs;
-    }
-
-    public void setGraphs(List<GraphLoader> graphs) {
-        this.graphs = graphs;
-    }
-
-    public boolean isStoreInMemory() {
-        return isStoreInMemory;
-    }
-
-    public void setStoreInMemory(boolean storeInMemory) {
-        isStoreInMemory = storeInMemory;
-    }
-
-    public String getExperimentName() {
-        return experimentName;
-    }
-
-    public void setExperimentName(String experimentName) {
-        this.experimentName = experimentName;
-    }
-
-    public void setK(int k) {
-        this.k = k;
-    }
-
-    public void setTgfdTheta(double tgfdTheta) {
-        this.tgfdTheta = tgfdTheta;
-    }
-
-    public int getGamma() {
-        return gamma;
-    }
-
-    public void setGamma(int gamma) {
-        this.gamma = gamma;
-    }
-
-    public int getFrequentSetSize() {
-        return frequentSetSize;
-    }
-
-    public void setFrequentSetSize(int frequentSetSize) {
-        this.frequentSetSize = frequentSetSize;
-    }
-
-    public void setNumOfSnapshots(int numOfSnapshots) {
-        this.numOfSnapshots = numOfSnapshots;
-    }
-
-    public HashMap<String, JSONArray> getChangeFilesMap() {
-        return changeFilesMap;
-    }
-
-    public void setChangeFilesMap(HashMap<String, JSONArray> changeFilesMap) {
-        this.changeFilesMap = changeFilesMap;
-    }
 
     public String getGraphSize() {
         return graphSize;
@@ -672,89 +456,6 @@ public class Util {
         this.graphSize = graphSize;
     }
 
-    public ArrayList<Long> getkRuntimes() {
-        return kRuntimes;
-    }
-
-    public String getExperimentStartTimeAndDateStamp() {
-        return experimentStartTimeAndDateStamp;
-    }
-
-    public void setExperimentStartTimeAndDateStamp(String experimentStartTimeAndDateStamp) {
-        this.experimentStartTimeAndDateStamp = experimentStartTimeAndDateStamp;
-    }
-
-    public boolean isUseOptChangeFile() {
-        return useOptChangeFile;
-    }
-
-    public void setUseOptChangeFile(boolean useOptChangeFile) {
-        this.useOptChangeFile = useOptChangeFile;
-    }
-
-    public List<Map.Entry<String, Integer>> getSortedVertexHistogram() {
-        return sortedVertexHistogram;
-    }
-
-    public Integer getNumOfEdgesInAllGraphs() {
-        return numOfEdgesInAllGraphs;
-    }
-
-    public int getNumOfVerticesInAllGraphs() {
-        return numOfVerticesInAllGraphs;
-    }
-
-    public double getSuperVertexDegree() {
-        return superVertexDegree;
-    }
-
-    public void setSuperVertexDegree(double superVertexDegree) {
-        this.superVertexDegree = superVertexDegree;
-    }
-
-    public Map<String, Double> getVertexTypesToAvgInDegreeMap() {
-        return vertexTypesToAvgInDegreeMap;
-    }
-
-    public void setVertexTypesToAvgInDegreeMap(Map<String, Double> vertexTypesToAvgInDegreeMap) {
-        this.vertexTypesToAvgInDegreeMap = vertexTypesToAvgInDegreeMap;
-    }
-
-    public boolean isDissolveSuperVerticesBasedOnCount() {
-        return dissolveSuperVerticesBasedOnCount;
-    }
-
-    public void setDissolveSuperVerticesBasedOnCount(boolean dissolveSuperVerticesBasedOnCount) {
-        this.dissolveSuperVerticesBasedOnCount = dissolveSuperVerticesBasedOnCount;
-    }
-
-    public Model getFirstSnapshotTypeModel() {
-        return firstSnapshotTypeModel;
-    }
-
-    public void setFirstSnapshotTypeModel(Model firstSnapshotTypeModel) {
-        this.firstSnapshotTypeModel = firstSnapshotTypeModel;
-    }
-
-    public Model getFirstSnapshotDataModel() {
-        return firstSnapshotDataModel;
-    }
-
-    public void setFirstSnapshotDataModel(Model firstSnapshotDataModel) {
-        this.firstSnapshotDataModel = firstSnapshotDataModel;
-    }
-
-    public int getMaxNumOfLiterals() {
-        return maxNumOfLiterals;
-    }
-
-    public void setMaxNumOfLiterals(int maxNumOfLiterals) {
-        this.maxNumOfLiterals = maxNumOfLiterals;
-    }
-
-    public List<Long> getTotalSupergraphCheckingTime() {
-        return totalSupergraphCheckingTime;
-    }
 
     private static Long getTotalSupergraphCheckingTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalSupergraphCheckingTime, index);
@@ -762,10 +463,6 @@ public class Util {
 
     public static void addToTotalSupergraphCheckingTime(long supergraphCheckingTime) {
         addToValueInListAtIndex(Util.totalSupergraphCheckingTime, Util.currentVSpawnLevel, supergraphCheckingTime);
-    }
-
-    public List<Long> getTotalVisitedPathCheckingTime() {
-        return totalVisitedPathCheckingTime;
     }
 
     private static Long getTotalVisitedPathCheckingTime(int index) {
@@ -783,10 +480,6 @@ public class Util {
         list.set(index, value);
     }
 
-    public List<Long> getTotalSupersetPathCheckingTime() {
-        return totalSupersetPathCheckingTime;
-    }
-
     private static Long getTotalSupersetPathCheckingTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalSupersetPathCheckingTime, index);
     }
@@ -795,17 +488,11 @@ public class Util {
         addToValueInListAtIndex(totalSupersetPathCheckingTime, currentVSpawnLevel, supersetPathCheckingTime);
     }
 
-    public List<Long> getTotalFindEntitiesTime() {
-        return totalFindEntitiesTime;
-    }
 
     private static Long getTotalFindEntitiesTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalFindEntitiesTime, index);
     }
 
-    public List<Long> getTotalDiscoverConstantTGFDsTime() {
-        return totalDiscoverConstantTGFDsTime;
-    }
 
     private static Long getTotalDiscoverConstantTGFDsTime(int index) {
         return returnLongAtIndexIfExistsElseZero(totalDiscoverConstantTGFDsTime, index);
@@ -815,9 +502,6 @@ public class Util {
         addToValueInListAtIndex(totalDiscoverConstantTGFDsTime, currentVSpawnLevel, discoverConstantTGFDsTime);
     }
 
-    public List<Long> getTotalDiscoverGeneralTGFDTime() {
-        return totalDiscoverGeneralTGFDTime;
-    }
 
     private static Long getTotalDiscoverGeneralTGFDTime(int index) {
         return returnLongAtIndexIfExistsElseZero(Util.totalDiscoverGeneralTGFDTime, index);
@@ -829,30 +513,6 @@ public class Util {
 
     public static Long returnLongAtIndexIfExistsElseZero(List<Long> list, int index) {
         return index < list.size() ? list.get(index) : (long)0;
-    }
-
-    public double getPatternTheta() {
-        return patternTheta;
-    }
-
-    public void setPatternTheta(double patternTheta) {
-        this.patternTheta = patternTheta;
-    }
-
-    public long getTotalHistogramTime() {
-        return totalHistogramTime;
-    }
-
-    public void setTotalHistogramTime(long totalHistogramTime) {
-        this.totalHistogramTime = totalHistogramTime;
-    }
-
-    public boolean isFastMatching() {
-        return fastMatching;
-    }
-
-    public void setFastMatching(boolean fastMatching) {
-        this.fastMatching = fastMatching;
     }
 
     public static Double getMedianPatternSupportsList(int index) {
@@ -883,73 +543,9 @@ public class Util {
         return index < list.size() ? list.get(index) : (double)0;
     }
 
-    public Set<String> getInterestLabelsSet() {
-        return interestLabelsSet;
-    }
-
-    public Set<String> getActiveAttributesSet() {
-        return activeAttributesSet;
-    }
-
-    public void setActiveAttributesSet(Set<String> activeAttributesSet) {
-        this.activeAttributesSet = activeAttributesSet;
-    }
-
-    public Map<String, Integer> getVertexHistogram() {
-        return vertexHistogram;
-    }
 
     public static Map<String, Set<String>> getVertexTypesToActiveAttributesMap() {
         return vertexTypesToActiveAttributesMap;
-    }
-
-    public List<Map.Entry<String, Integer>> getSortedFrequentEdgesHistogram() {
-        return sortedFrequentEdgesHistogram;
-    }
-
-    public void setSortedFrequentEdgesHistogram(List<Map.Entry<String, Integer>> sortedFrequentEdgesHistogram) {
-        this.sortedFrequentEdgesHistogram = sortedFrequentEdgesHistogram;
-    }
-
-    public void setSortedVertexHistogram(List<Map.Entry<String, Integer>> sortedVertexHistogram) {
-        this.sortedVertexHistogram = sortedVertexHistogram;
-    }
-
-    public void setVertexTypesToActiveAttributesMap(Map<String, Set<String>> vertexTypesToActiveAttributesMap) {
-        this.vertexTypesToActiveAttributesMap = vertexTypesToActiveAttributesMap;
-    }
-
-    public static void markAsKexperiment() {
-        experimentName = "vary-k";
-        kExperiment = (true);
-    }
-
-    public void setVertexHistogram(Map<String, Integer> vertexHistogram) {
-        this.vertexHistogram = vertexHistogram;
-    }
-
-    public boolean isPrintToLogFile() {
-        return printToLogFile;
-    }
-
-    public void setPrintToLogFile(boolean printToLogFile) {
-        this.printToLogFile = printToLogFile;
-    }
-
-    public void setTypeChangeURIs(Map<String, Set<String>> typeChangeURIs) {
-        this.typeChangeURIs = typeChangeURIs;
-    }
-
-    public Map<String, Set<String>> getTypeChangeURIs() {
-        return typeChangeURIs;
-    }
-
-    public boolean isIncremental() {
-        return isIncremental;
-    }
-
-    public void setIncremental(boolean incremental) {
-        isIncremental = incremental;
     }
 
     public static void printTgfdsToFile(String experimentName, ArrayList<TGFD> tgfds) {

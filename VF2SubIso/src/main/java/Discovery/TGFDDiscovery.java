@@ -168,6 +168,13 @@ public class TGFDDiscovery {
 		return String.join("-", list);
 	}
 
+	public void start()
+	{
+		final long startTime = System.currentTimeMillis();
+		loadGraphsAndComputeHistogram2();
+		initialize();
+	}
+
 	public static void main(String[] args) {
 		final long startTime = System.currentTimeMillis();
 
@@ -628,12 +635,6 @@ public class TGFDDiscovery {
 
 			if (Util.getVertexTypesToActiveAttributesMap().get(patternVertexType).size() == 0)
 				continue; // TODO: Should these frequent types without active attribute be filtered out much earlier?
-
-//			int numOfInstancesOfVertexType = this.getSortedVertexHistogram().get(i).getValue();
-//			int numOfInstancesOfAllVertexTypes = this.getNumOfVerticesInAllGraphs();
-
-//			double frequency = (double) numOfInstancesOfVertexType / (double) numOfInstancesOfAllVertexTypes;
-//			System.out.println("Frequency of vertex type: " + numOfInstancesOfVertexType + " / " + numOfInstancesOfAllVertexTypes + " = " + frequency);
 
 			System.out.println("Vertex type: "+patternVertexType);
 			VF2PatternGraph candidatePattern = new VF2PatternGraph();
