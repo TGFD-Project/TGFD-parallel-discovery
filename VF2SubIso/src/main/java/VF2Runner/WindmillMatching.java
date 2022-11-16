@@ -94,7 +94,7 @@ public class WindmillMatching extends FastMatching {
             for (ConstantLiteral constantLiteral: completeMatch) {
                 if (constantLiteral.getAttrName().equals("uri") && constantLiteral.getVertexType().equals(this.originalPattern.getCenterVertexType())) {
                     String entityURI = constantLiteral.getAttrValue();
-                    this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+                    this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
                     this.entityURIs.get(entityURI).set(t, this.entityURIs.get(entityURI).get(t) + 1);
                 }
             }

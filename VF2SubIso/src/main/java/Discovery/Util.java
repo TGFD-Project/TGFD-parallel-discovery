@@ -1,17 +1,22 @@
 package Discovery;
 
+import ChangeExploration.AttributeChange;
+import ChangeExploration.Change;
+import ChangeExploration.ChangeType;
+import ChangeExploration.TypeChange;
 import ICs.TGFD;
-import Infra.ConstantLiteral;
-import Infra.PatternTree;
-import Infra.Vertex;
+import Infra.*;
 import Loader.GraphLoader;
 import org.apache.commons.cli.*;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.apache.jena.rdf.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -240,24 +245,6 @@ public class Util {
             fastMatching = (false);
     }
 
-    public static void divertOutputToLogFile() {
-        if (printToLogFile) {
-            String fileName = "tgfd-discovery-log-" + experimentStartTimeAndDateStamp + ".txt";
-            if (logStream == null) {
-                try {
-                    logStream = new PrintStream(fileName);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-            divertOutputToStream(logStream);
-        }
-    }
-
-    private static void divertOutputToStream(PrintStream stream) {
-        System.setOut(stream);
-    }
-
     private static Options initializeCmdOptions() {
         Options options = new Options();
         options.addOption("name", true, "output files will be given the specified name");
@@ -319,19 +306,6 @@ public class Util {
         setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
     }
 
-    @NotNull
-    private static Map<String, List<String>> generateDbpediaTimestampToFilesMap(String path) {
-        ArrayList<File> directories = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isDirectory))));
-        directories.sort(Comparator.comparing(File::getName));
-        Map<String, List<String>> timestampToFilesMap = new HashMap<>();
-        for (File directory: directories) {
-            ArrayList<File> files = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(directory.getPath()).listFiles(File::isFile))));
-            List<String> paths = files.stream().map(File::getPath).collect(Collectors.toList());
-            timestampToFilesMap.put(directory.getName(),paths);
-        }
-        return timestampToFilesMap;
-    }
-
     private static void setCitationTimestampsAndFilePaths() {
         ArrayList<String> filePaths = new ArrayList<>();
         filePaths.add("dblp_papers_v11.txt");
@@ -345,13 +319,13 @@ public class Util {
         setTimestampToFilesMap(new ArrayList<>(timestampstoFilePathsMap.entrySet()));
     }
 
-    private static void setImdbTimestampToFilesMapFromPath(String path) {
+    public static void setImdbTimestampToFilesMapFromPath(String path) {
         HashMap<String, List<String>> timestampToFilesMap = generateImdbTimestampToFilesMapFromPath(path);
         setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
     }
 
     @NotNull
-    private static HashMap<String, List<String>> generateImdbTimestampToFilesMapFromPath(String path) {
+    public static HashMap<String, List<String>> generateImdbTimestampToFilesMapFromPath(String path) {
         System.out.println("Searching for IMDB snapshots in path: "+ path);
         List<File> allFilesInDirectory = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
         System.out.println("Found files: "+allFilesInDirectory);
@@ -381,28 +355,11 @@ public class Util {
         return timestampToFilesMap;
     }
 
-    private static void setSyntheticTimestampToFilesMapFromPath(String path) {
+    public static void setSyntheticTimestampToFilesMapFromPath(String path) {
         HashMap<String, List<String>> timestampToFilesMap = generateSyntheticTimestampToFilesMapFromPath(path);
         setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
     }
 
-    @NotNull
-    private static HashMap<String, List<String>> generateSyntheticTimestampToFilesMapFromPath(String path) {
-        List<File> allFilesInDirectory = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
-        allFilesInDirectory.sort(Comparator.comparing(File::getName));
-        HashMap<String,List<String>> timestampToFilesMap = new HashMap<>();
-        for (File ntFile: allFilesInDirectory) {
-            String regex = "^graph([0-9]+)\\.txt$";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(ntFile.getName());
-            if (matcher.find()) {
-                String timestamp = matcher.group(1);
-                timestampToFilesMap.putIfAbsent(timestamp, new ArrayList<>());
-                timestampToFilesMap.get(timestamp).add(ntFile.getPath());
-            }
-        }
-        return timestampToFilesMap;
-    }
 
     public static void setCurrentVSpawnLevel(int currentVSpawnLevel) {
         Util.currentVSpawnLevel = currentVSpawnLevel;
@@ -414,7 +371,7 @@ public class Util {
     }
 
     public static void addToTotalVSpawnTime(long vSpawnTime) {
-        TGFDDiscovery.printWithTime("vSpawn", vSpawnTime);
+        printWithTime("vSpawn", vSpawnTime);
         addToValueInListAtIndex(Util.totalVSpawnTime, Util.currentVSpawnLevel, vSpawnTime);
     }
 
@@ -431,6 +388,85 @@ public class Util {
         for (int vSpawnLevel = 0; vSpawnLevel <= k; vSpawnLevel++) {
             discoveredTgfds.add(new ArrayList<>());
         }
+    }
+    public static JSONArray readJsonArrayFromFile(String changeFilePath) {
+        System.out.println("Reading JSON array from file "+changeFilePath);
+        JSONParser parser = new JSONParser();
+        Object json;
+        JSONArray jsonArray = null;
+        try {
+            json = parser.parse(new FileReader(changeFilePath));
+            jsonArray = (JSONArray) json;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return jsonArray;
+    }
+
+    public static void sortChanges(List<Change> changes) {
+        System.out.println("Number of changes: "+changes.size());
+        HashMap<ChangeType, Integer> map = new HashMap<>();
+        map.put(ChangeType.deleteAttr, 1);
+        map.put(ChangeType.insertAttr, 3);
+        map.put(ChangeType.changeAttr, 1);
+        map.put(ChangeType.deleteEdge, 0);
+        map.put(ChangeType.insertEdge, 3);
+        map.put(ChangeType.changeType, 1);
+        map.put(ChangeType.deleteVertex, 1);
+        map.put(ChangeType.insertVertex, 2);
+        changes.sort(new Comparator<Change>() {
+            @Override
+            public int compare(Change o1, Change o2) {
+                return map.get(o1.getTypeOfChange()).compareTo(map.get(o2.getTypeOfChange()));
+            }
+        });
+        System.out.println("Sorted changes.");
+    }
+
+    @NotNull
+    public static List<Map.Entry<Integer, HashSet<Change>>> getSortedChanges(HashMap<Integer, HashSet<Change>> newChanges) {
+        List<Map.Entry<Integer,HashSet<Change>>> sortedChanges = new ArrayList<>(newChanges.entrySet());
+        HashMap<ChangeType, Integer> map = new HashMap<>();
+        map.put(ChangeType.deleteAttr, 2);
+        map.put(ChangeType.insertAttr, 4);
+        map.put(ChangeType.changeAttr, 4);
+        map.put(ChangeType.deleteEdge, 0);
+        map.put(ChangeType.insertEdge, 5);
+        map.put(ChangeType.changeType, 3);
+        map.put(ChangeType.deleteVertex, 1);
+        map.put(ChangeType.insertVertex, 1);
+        sortedChanges.sort(new Comparator<Map.Entry<Integer, HashSet<Change>>>() {
+            @Override
+            public int compare(Map.Entry<Integer, HashSet<Change>> o1, Map.Entry<Integer, HashSet<Change>> o2) {
+                if ((o1.getValue().iterator().next() instanceof AttributeChange || o1.getValue().iterator().next() instanceof TypeChange)
+                        && (o2.getValue().iterator().next() instanceof AttributeChange || o2.getValue().iterator().next() instanceof TypeChange)) {
+                    boolean o1containsTypeChange = false;
+                    for (Change c: o1.getValue()) {
+                        if (c instanceof TypeChange) {
+                            o1containsTypeChange = true;
+                            break;
+                        }
+                    }
+                    boolean o2containsTypeChange = false;
+                    for (Change c: o2.getValue()) {
+                        if (c instanceof TypeChange) {
+                            o2containsTypeChange = true;
+                            break;
+                        }
+                    }
+                    if (o1containsTypeChange && !o2containsTypeChange) {
+                        return -1;
+                    } else if (!o1containsTypeChange && o2containsTypeChange) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+                return map.get(o1.getValue().iterator().next().getTypeOfChange()).compareTo(map.get(o2.getValue().iterator().next().getTypeOfChange()));
+            }
+        });
+        return sortedChanges;
     }
 
 
@@ -667,7 +703,7 @@ public class Util {
         }
     }
 
-    private static void divertOutputToSummaryFile() {
+    public static void divertOutputToSummaryFile() {
         if (printToLogFile) {
             String fileName = "tgfd-discovery-summary-" + experimentStartTimeAndDateStamp + ".txt";
             if (Util.summaryStream == null) {
@@ -679,6 +715,24 @@ public class Util {
             }
             divertOutputToStream(Util.summaryStream);
         }
+    }
+
+    public static void divertOutputToLogFile() {
+        if (Util.printToLogFile) {
+            String fileName = "tgfd-discovery-log-" + Util.experimentStartTimeAndDateStamp + ".txt";
+            if (Util.logStream == null) {
+                try {
+                    Util.logStream = new PrintStream(fileName);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+            divertOutputToStream(Util.logStream);
+        }
+    }
+
+    public static void divertOutputToStream(PrintStream stream) {
+        System.setOut(stream);
     }
 
 
@@ -740,6 +794,115 @@ public class Util {
         System.out.println(message + " time: " + runTimeInMS + "(ms) ** " +
                 TimeUnit.MILLISECONDS.toSeconds(runTimeInMS) + "(sec) ** " +
                 TimeUnit.MILLISECONDS.toMinutes(runTimeInMS) +  "(min)");
+    }
+
+    public static double calculatePatternSupport(Map<String, List<Integer>> entityURIs, double S, int T) {
+//		System.out.println("Calculating pattern support...");
+//		String centerVertexType = patternTreeNode.getPattern().getCenterVertexType();
+//		System.out.println("Center vertex type: " + centerVertexType);
+        int numOfPossiblePairs = 0;
+        for (Map.Entry<String, List<Integer>> entityUriEntry : entityURIs.entrySet()) {
+            int numberOfAcrossMatchesOfEntity = (int) entityUriEntry.getValue().stream().filter(x -> x > 0).count();
+            int k = 2;
+            if (numberOfAcrossMatchesOfEntity >= k)
+                numOfPossiblePairs += CombinatoricsUtils.binomialCoefficient(numberOfAcrossMatchesOfEntity, k);
+
+            int numberOfWithinMatchesOfEntity = (int) entityUriEntry.getValue().stream().filter(x -> x > 1).count();
+            numOfPossiblePairs += numberOfWithinMatchesOfEntity;
+        }
+//		int S = this.vertexHistogram.get(centerVertexType);
+// 		patternTreeNode.calculatePatternSupport(patternSupport);
+        return calculateSupport(numOfPossiblePairs, S, T);
+    }
+
+    public static double calculateSupport(double numerator, double S, int T) {
+        System.out.println("S = "+S);
+        double denominator = S * CombinatoricsUtils.binomialCoefficient(T+1,2);
+        System.out.print("Support: " + numerator + " / " + denominator + " = ");
+        if (numerator > denominator)
+            throw new IllegalArgumentException("numerator > denominator");
+        double support = numerator / denominator;
+        System.out.println(support);
+        return support;
+    }
+
+    public static boolean isDuplicateEdge(VF2PatternGraph pattern, String edgeType, String sourceType, String targetType) {
+        for (RelationshipEdge edge : pattern.getPattern().edgeSet()) {
+            if (edge.getLabel().equalsIgnoreCase(edgeType)) {
+                if (edge.getSource().getTypes().contains(sourceType) && edge.getTarget().getTypes().contains(targetType)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isMultipleEdge(VF2PatternGraph pattern, String sourceType, String targetType) {
+        for (RelationshipEdge edge : pattern.getPattern().edgeSet()) {
+            if (edge.getSource().getTypes().contains(sourceType) && edge.getTarget().getTypes().contains(targetType)) {
+                return true;
+            } else if (edge.getSource().getTypes().contains(targetType) && edge.getTarget().getTypes().contains(sourceType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @NotNull
+    public static HashMap<String, List<String>> generateSyntheticTimestampToFilesMapFromPath(String path) {
+        List<File> allFilesInDirectory = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isFile))));
+        allFilesInDirectory.sort(Comparator.comparing(File::getName));
+        HashMap<String,List<String>> timestampToFilesMap = new HashMap<>();
+        for (File ntFile: allFilesInDirectory) {
+            String regex = "^graph([0-9]+)\\.txt$";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(ntFile.getName());
+            if (matcher.find()) {
+                String timestamp = matcher.group(1);
+                timestampToFilesMap.putIfAbsent(timestamp, new ArrayList<>());
+                timestampToFilesMap.get(timestamp).add(ntFile.getPath());
+            }
+        }
+        return timestampToFilesMap;
+    }
+
+    // TODO: Can this be merged with the code in histogram?
+    public static void dissolveSuperVerticesBasedOnCount(GraphLoader graph, int superVertexDegree) {
+        System.out.println("Dissolving super vertices based on count...");
+        System.out.println("Initial edge count of first snapshot: "+graph.getGraph().getGraph().edgeSet().size());
+        for (Vertex v: graph.getGraph().getGraph().vertexSet()) {
+            int inDegree = graph.getGraph().getGraph().incomingEdgesOf(v).size(); // TODO: Should we use general degree instead of in-degree?
+            if (inDegree > superVertexDegree) {
+                List<RelationshipEdge> edgesToDelete = new ArrayList<>(graph.getGraph().getGraph().incomingEdgesOf(v));
+                for (RelationshipEdge e : edgesToDelete) {
+                    Vertex sourceVertex = e.getSource();
+                    Map<String, Attribute> sourceVertexAttrMap = sourceVertex.getAllAttributesHashMap();
+                    String newAttrName = e.getLabel();
+                    if (sourceVertexAttrMap.containsKey(newAttrName)) {
+                        newAttrName = e.getLabel() + "value";
+                        if (!sourceVertexAttrMap.containsKey(newAttrName)) {
+                            sourceVertex.putAttributeIfAbsent(new Attribute(newAttrName, v.getAttributeValueByName("uri")));
+                        }
+                    }
+                    graph.getGraph().getGraph().removeEdge(e);
+                }
+            }
+        }
+        System.out.println("Updated edge count of first snapshot: "+graph.getGraph().getGraph().edgeSet().size());
+    }
+
+
+    @NotNull
+    public static Map<String, List<String>> generateDbpediaTimestampToFilesMap(String path) {
+        ArrayList<File> directories = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(path).listFiles(File::isDirectory))));
+        directories.sort(Comparator.comparing(File::getName));
+        Map<String, List<String>> timestampToFilesMap = new HashMap<>();
+        for (File directory: directories) {
+            ArrayList<File> files = new ArrayList<>(Arrays.asList(Objects.requireNonNull(new File(directory.getPath()).listFiles(File::isFile))));
+            List<String> paths = files.stream().map(File::getPath).collect(Collectors.toList());
+            timestampToFilesMap.put(directory.getName(),paths);
+        }
+        return timestampToFilesMap;
     }
 
 

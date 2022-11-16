@@ -111,7 +111,7 @@ public class DiscoverConstantTGFDs {
                     System.out.println("Satisfying pairs: " + satisfyingPairs);
 
                     numerator = satisfyingPairs.size();
-                    double candidateSupport = TGFDDiscovery.calculateSupport(numerator, entities.size(), Util.T);
+                    double candidateSupport = Util.calculateSupport(numerator, entities.size(), Util.T);
 
                     if (candidateSupport > candidateTGFDsupport) {
                         candidateTGFDsupport = candidateSupport;

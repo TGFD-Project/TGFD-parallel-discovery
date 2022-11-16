@@ -1,5 +1,6 @@
 package Infra;
 
+import Discovery.Util;
 import IncrementalRunner.IncUpdates;
 import Discovery.TGFDDiscovery;
 import ChangeExploration.Change;
@@ -94,7 +95,7 @@ public class Histogram {
                 throw new IllegalArgumentException("Cannot dissolve types without storing graphs in memory");
             System.out.println("Collapsing vertices with an in-degree above " + degreeForSuperVertexTypes);
             this.dissolveSuperVertexTypesAndUpdateHistograms(degreeForSuperVertexTypes);
-            TGFDDiscovery.printWithTime("Super vertex types dissolution", (System.currentTimeMillis() - superVertexHandlingTime));
+            Discovery.Util.printWithTime("Super vertex types dissolution", (System.currentTimeMillis() - superVertexHandlingTime));
         }
         performRecordKeeping();
     }
@@ -150,7 +151,7 @@ public class Histogram {
 //		this.setNumOfSnapshots(this.getT());
 
         this.totalHistogramTime = System.currentTimeMillis() - this.getHistogramStarTime();
-        TGFDDiscovery.printWithTime("All snapshots histogram", this.totalHistogramTime);
+        Discovery.Util.printWithTime("All snapshots histogram", this.totalHistogramTime);
         printHistogram();
         printHistogramStatistics();
     }
@@ -190,7 +191,7 @@ public class Histogram {
 
     private void updateGraphUsingChangefile(GraphLoader graphLoader, String changeFilePath, boolean storeInMemory) {
         final long graphUpdateTime = System.currentTimeMillis();
-        JSONArray jsonArray = TGFDDiscovery.readJsonArrayFromFile(changeFilePath);
+        JSONArray jsonArray = Util.readJsonArrayFromFile(changeFilePath);
         ChangeLoader changeLoader = new ChangeLoader(jsonArray, null, null, true);
         IncUpdates incUpdatesOnDBpedia = new IncUpdates(graphLoader.getGraph(), new ArrayList<>());
         this.typeChangesURIs = new HashMap<>();
@@ -201,9 +202,9 @@ public class Histogram {
                 this.typeChangesURIs.get(uri).addAll(change.getTypes());
             }
         }
-        TGFDDiscovery.sortChanges(changeLoader.getAllChanges());
+        Util.sortChanges(changeLoader.getAllChanges());
         incUpdatesOnDBpedia.updateEntireGraph(changeLoader.getAllChanges());
-        TGFDDiscovery.printWithTime("Graph update time", (System.currentTimeMillis() - graphUpdateTime));
+        Discovery.Util.printWithTime("Graph update time", (System.currentTimeMillis() - graphUpdateTime));
         if (storeInMemory) {
             if (this.changefilesToJsonArrayMap == null)
                 this.changefilesToJsonArrayMap = new HashMap<>();
@@ -239,7 +240,7 @@ public class Histogram {
             case "imdb": graphLoader = new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel)); break;
             default: throw new IllegalArgumentException("Specified loader " + this.loader + " is not supported.");
         }
-        TGFDDiscovery.printWithTime("Single graph load", (System.currentTimeMillis() - graphLoadTime));
+        Discovery.Util.printWithTime("Single graph load", (System.currentTimeMillis() - graphLoadTime));
         return graphLoader;
     }
 
@@ -247,7 +248,7 @@ public class Histogram {
         long graphHistogramTime = System.currentTimeMillis();
         readVertexTypesAndAttributeNamesFromGraph(graph, superVertexDegree);
         readEdgesInfoFromGraph(graph);
-        TGFDDiscovery.printWithTime("Single graph histogram", (System.currentTimeMillis() - graphHistogramTime));
+        Discovery.Util.printWithTime("Single graph histogram", (System.currentTimeMillis() - graphHistogramTime));
     }
 
     private void readVertexTypesAndAttributeNamesFromGraph(GraphLoader graph, Integer superVertexDegree) {

@@ -52,7 +52,7 @@ public class FastMatching extends LocalizedVF2Matching {
                     continue;
                 }
                 if (entityURI != null) {
-                    this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+                    this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
                     this.entityURIs.get(entityURI).set(t, this.entityURIs.get(entityURI).get(t) + 1);
                 }
                 matchesInThisTimestamp.add(match);
@@ -268,7 +268,7 @@ public class FastMatching extends LocalizedVF2Matching {
         String entityURI = centerDataVertex.getVertexURI();
         // TODO: The following lines are common among all findMatch methods. Can they be combined?
         if (matchesAroundCenterVertex.size() > 0) { // equivalent to entityURI != null
-            this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+            this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
             this.entityURIs.get(entityURI).set(t, this.entityURIs.get(entityURI).get(t)+matchesAroundCenterVertex.size());
         }
     }
@@ -345,7 +345,7 @@ public class FastMatching extends LocalizedVF2Matching {
         }
         String entityURI = dataVertex.getVertexURI();
         if (matchesAroundCenterVertex.size() > 0) { // equivalent to entityURI != null
-            this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+            this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
             this.entityURIs.get(entityURI).set(t, this.entityURIs.get(entityURI).get(t)+matchesAroundCenterVertex.size());
         }
     }
@@ -411,7 +411,7 @@ public class FastMatching extends LocalizedVF2Matching {
                     continue;
                 }
                 if (entityURI != null) {
-                    this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+                    this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
                     this.entityURIs.get(entityURI).set(timestamp, this.entityURIs.get(entityURI).get(timestamp)+1);
                 }
                 matchesAroundCenterVertex.add(literalsInMatch);

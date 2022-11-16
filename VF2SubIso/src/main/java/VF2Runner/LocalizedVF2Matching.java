@@ -126,7 +126,7 @@ public class LocalizedVF2Matching {
                 }
                 if (centerVertexEntityURIs != null) {
                     String entityURI = dataVertex.getVertexURI();
-                    centerVertexEntityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+                    centerVertexEntityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
                     centerVertexEntityURIs.get(entityURI).set(timestamp, centerVertexEntityURIs.get(entityURI).get(timestamp) + 1);
                     numOfRelevantCenterVerticesFound++;
                 }
@@ -134,7 +134,7 @@ public class LocalizedVF2Matching {
         }
         System.out.println("Number of center vertices found: " + numOfCenterVerticesFound);
         System.out.println("Number of relevant center vertices found: " + numOfRelevantCenterVerticesFound);
-        TGFDDiscovery.printWithTime("Finding URIs of center vertex type", System.currentTimeMillis()-startTime);
+        Discovery.Util.printWithTime("Finding URIs of center vertex type", System.currentTimeMillis()-startTime);
     }
 
     // TODO: Does this method contain duplicate code that is common with other findMatch methods?
@@ -161,7 +161,7 @@ public class LocalizedVF2Matching {
                 continue;
 
             if (entityURI != null) {
-                this.entityURIs.putIfAbsent(entityURI, TGFDDiscovery.createEmptyArrayListOfSize(this.T));
+                this.entityURIs.putIfAbsent(entityURI, Discovery.Util.createEmptyArrayListOfSize(this.T));
                 this.entityURIs.get(entityURI).set(timestamp, this.entityURIs.get(entityURI).get(timestamp)+1);
             }
             matchesAroundCenterVertex.add(literalsInMatch);

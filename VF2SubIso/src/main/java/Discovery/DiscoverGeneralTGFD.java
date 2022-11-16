@@ -118,7 +118,7 @@ public class DiscoverGeneralTGFD {
 
             System.out.println("Number of satisfying pairs: " + numberOfSatisfyingPairs);
             System.out.println("Satisfying pairs: " + intersection.getValue());
-            double support = TGFDDiscovery.calculateSupport(numberOfSatisfyingPairs, entitiesSize, Util.T);
+            double support = Util.calculateSupport(numberOfSatisfyingPairs, entitiesSize, Util.T);
             System.out.println("Candidate general TGFD support: " + support);
             Util.generalTgfdSupportsListForThisSnapshot.add(support);
 
