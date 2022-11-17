@@ -3,10 +3,11 @@ package Infra;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class VF2PatternGraph {
+public class VF2PatternGraph implements Serializable {
 
     private Graph<Vertex, RelationshipEdge> pattern;
 

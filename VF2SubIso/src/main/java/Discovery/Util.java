@@ -33,6 +33,8 @@ public class Util {
 
     //region --[Static Fields: Public]---------------------------------------
 
+
+    public static final String TYPE_PREDICATE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     public static final int DEFAULT_NUM_OF_SNAPSHOTS = 3;
     public static final String NO_REUSE_MATCHES_PARAMETER_TEXT = "noReuseMatches";
     public static final String CHANGEFILE_PARAMETER_TEXT = "changefile";
@@ -316,12 +318,12 @@ public class Util {
         for (String filePath: filePaths) {
             timestampstoFilePathsMap.put(String.valueOf(timestampName), Collections.singletonList(filePath));
         }
-        setTimestampToFilesMap(new ArrayList<>(timestampstoFilePathsMap.entrySet()));
+        Util.setTimestampToFilesMap(new ArrayList<>(timestampstoFilePathsMap.entrySet()));
     }
 
     public static void setImdbTimestampToFilesMapFromPath(String path) {
         HashMap<String, List<String>> timestampToFilesMap = generateImdbTimestampToFilesMapFromPath(path);
-        setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
+        Util.setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
     }
 
     @NotNull
@@ -357,7 +359,7 @@ public class Util {
 
     public static void setSyntheticTimestampToFilesMapFromPath(String path) {
         HashMap<String, List<String>> timestampToFilesMap = generateSyntheticTimestampToFilesMapFromPath(path);
-        setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
+        Util.setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
     }
 
 
@@ -472,7 +474,7 @@ public class Util {
 
     public static void setTimestampToFilesMap(List<Map.Entry<String, List<String>>> timestampToFilesMap) {
         timestampToFilesMap.sort(Map.Entry.comparingByKey());
-        timestampToFilesMap = timestampToFilesMap.subList(0,Math.min(timestampToFilesMap.size(),T));
+        Util.timestampToFilesMap = timestampToFilesMap.subList(0,Math.min(timestampToFilesMap.size(),T));
     }
 
     public String getPath() {

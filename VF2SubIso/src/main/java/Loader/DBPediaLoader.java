@@ -8,6 +8,7 @@ import Infra.Attribute;
 import Infra.DataVertex;
 import Infra.RelationshipEdge;
 import ICs.TGFD;
+import com.github.jsonldjava.utils.Obj;
 import org.apache.jena.rdf.model.*;
 import Util.Config;
 
@@ -32,13 +33,21 @@ public class DBPediaLoader extends GraphLoader {
         super(alltgfd);
 
         for (Object typePath:typesPath) {
-            if(typePath instanceof String)
-                loadNodeMap((String) typePath);
+            if (typePath instanceof String)
+                loadNodeMap((String)typePath);
+            else if (typePath instanceof Model)
+                loadNodeMap((Model)typePath);
+            else
+                throw new IllegalArgumentException("unsupported object type");
         }
 
-        for (Object dataP:dataPath) {
-            if(dataP instanceof String)
-                loadDataGraph((String) dataP);
+        for (Object d:dataPath) {
+            if (d instanceof String)
+                loadDataGraph((String)d);
+            else if (d instanceof Model)
+                loadDataGraph((Model)d);
+            else
+                throw new IllegalArgumentException("unsupported object type");
         }
     }
 
@@ -124,6 +133,49 @@ public class DBPediaLoader extends GraphLoader {
         }
         catch (Exception e)
         {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void loadNodeMap(Model model) {
+
+        try {
+
+            StmtIterator typeTriples = model.listStatements();
+
+            while (typeTriples.hasNext()) {
+                Statement stmt = typeTriples.nextStatement();
+
+                if (!stmt.getPredicate().getURI().equals(Discovery.Util.TYPE_PREDICATE_URI))
+                    continue;
+
+                String nodeURI = stmt.getSubject().getURI().toLowerCase(); //TODO: URI in some data can be case sensitive. Should we handle this?
+                if (nodeURI.length() > 28) {
+                    nodeURI = nodeURI.substring(28);
+                }
+                String nodeType = stmt.getObject().asResource().getLocalName().toLowerCase();
+                if (nodeType.trim().length() == 0)
+                    continue;
+
+                // ignore the node if the type is not in the validTypes and
+                // optimizedLoadingBasedOnTGFD is true
+                if(Config.optimizedLoadingBasedOnTGFD && !validTypes.contains(nodeType))
+                    continue;
+                //int nodeId = subject.hashCode();
+                DataVertex v= (DataVertex) graph.getNode(nodeURI);
+
+                if (v==null) {
+                    v=new DataVertex(nodeURI,nodeType);
+                    graph.addVertex(v);
+                }
+                else {
+                    v.addType(nodeType);
+                }
+                types.add(nodeType);
+            }
+            System.out.println("Done. Number of Types: " + graph.getSize());
+        }
+        catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
@@ -237,6 +289,75 @@ public class DBPediaLoader extends GraphLoader {
         }
         catch (Exception e)
         {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void loadDataGraph(Model model) {
+
+        int numberOfObjectsNotFound = 0, numberOfSubjectsNotFound = 0;
+
+        try {
+            StmtIterator dataTriples = model.listStatements();
+
+            while (dataTriples.hasNext()) {
+
+                Statement stmt = dataTriples.nextStatement();
+
+                if (stmt.getPredicate().getURI().equals(Discovery.Util.TYPE_PREDICATE_URI))
+                    continue;
+
+                String predicate = stmt.getPredicate().getLocalName().toLowerCase();
+
+                String subjectNodeURI = stmt.getSubject().getURI().toLowerCase();
+                if (subjectNodeURI.length() > 28) {
+                    subjectNodeURI = subjectNodeURI.substring(28);
+                }
+
+                RDFNode object = stmt.getObject();
+                String objectNodeURI;
+
+                if (object.isLiteral()) {
+                    objectNodeURI = object.asLiteral().getString().toLowerCase();
+                } else {
+                    objectNodeURI = object.toString().substring(object.toString().lastIndexOf("/") + 1).toLowerCase();
+                }
+
+                DataVertex subjVertex = (DataVertex) graph.getNode(subjectNodeURI);
+
+                if (subjVertex == null) {
+
+                    //System.out.println("Subject node not found: " + subjectNodeURI);
+                    numberOfSubjectsNotFound++;
+                    continue;
+                }
+
+                if (!object.isLiteral()) {
+                    DataVertex objVertex = (DataVertex) graph.getNode(objectNodeURI);
+                    if (objVertex == null) {
+                        //System.out.println("Object node not found: " + subjectNodeURI + "  ->  " + predicate + "  ->  " + objectNodeURI);
+                        numberOfObjectsNotFound++;
+                        continue;
+                    } else if (subjectNodeURI.equals(objectNodeURI)) {
+                        //System.out.println("Loop found: " + subjectNodeURI + " -> " + objectNodeURI);
+                        continue;
+                    }
+                    boolean edgeAdded = graph.addEdge(subjVertex, objVertex, new RelationshipEdge(predicate));
+                    if (edgeAdded) graphSize++;
+                } else {
+//                    if (!Config.optimizedLoadingBasedOnTGFD || validAttributes.contains(predicate)) {
+                    subjVertex.putAttributeIfAbsent(new Attribute(predicate, objectNodeURI));
+                    graphSize++;
+//                    }
+                }
+            }
+            System.out.println("Subjects and Objects not found: " + numberOfSubjectsNotFound + " ** " + numberOfObjectsNotFound);
+            System.out.println("Done. Nodes: " + graph.getGraph().vertexSet().size() + ",  Edges: " + graph.getGraph().edgeSet().size());
+            //System.out.println("Number of subjects not found: " + numberOfSubjectsNotFound);
+            //System.out.println("Number of loops found: " + numberOfLoops);
+
+        }
+        catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }

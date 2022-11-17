@@ -114,10 +114,15 @@ public class TGFDDiscovery {
 		return String.join("-", list);
 	}
 
-	public void start()
+	public void startLoading()
 	{
 		final long startTime = System.currentTimeMillis();
 		loadGraphsAndComputeHistogram2();
+	}
+
+	public void start()
+	{
+		final long startTime = System.currentTimeMillis();
 
 		vSpawnInit();
 
@@ -177,6 +182,45 @@ public class TGFDDiscovery {
 		System.out.println("---------------------------------------------------------------");
 		Util.printTimeStatistics();
 		System.out.println("Total execution time: "+(System.currentTimeMillis() - startTime));
+	}
+
+	public List<PatternTreeNode> vSpawnSinglePatternTreeNode() {
+		Util.patternTree = new PatternTree();
+		Util.patternTree.addLevel();
+
+		List<PatternTreeNode> singleNodePatternTreeNodes = new ArrayList<>();
+
+		System.out.println("VSpawn Level 0");
+		for (int i = 0; i < Util.sortedVertexHistogram.size(); i++) {
+			long vSpawnTime = System.currentTimeMillis();
+			System.out.println("VSpawnInit with single-node pattern " + (i+1) + "/" + Util.sortedVertexHistogram.size());
+			String patternVertexType = Util.sortedVertexHistogram.get(i).getKey();
+
+			if (Util.getVertexTypesToActiveAttributesMap().get(patternVertexType).size() == 0)
+				continue; // TODO: Should these frequent types without active attribute be filtered out much earlier?
+
+			System.out.println("Vertex type: "+patternVertexType);
+			VF2PatternGraph candidatePattern = new VF2PatternGraph();
+			PatternVertex patternVertex = new PatternVertex(patternVertexType);
+			candidatePattern.addVertex(patternVertex);
+			candidatePattern.getCenterVertexType();
+			System.out.println("VSpawnInit with single-node pattern " + (i+1) + "/" + Util.sortedVertexHistogram.size() + ": " + candidatePattern.getPattern().vertexSet());
+
+			PatternTreeNode patternTreeNode;
+			patternTreeNode = Util.patternTree.createNodeAtLevel(Util.currentVSpawnLevel, candidatePattern);
+
+			final long finalVspawnTime = System.currentTimeMillis() - vSpawnTime;
+			Util.addToTotalVSpawnTime(finalVspawnTime);
+			Util.printWithTime("vSpawn", finalVspawnTime);
+
+			singleNodePatternTreeNodes.add(patternTreeNode);
+		}
+		System.out.println("GenTree Level " + Util.currentVSpawnLevel + " size: " + Util.patternTree.getLevel(Util.currentVSpawnLevel).size());
+		for (PatternTreeNode node : Util.patternTree.getLevel(Util.currentVSpawnLevel)) {
+			System.out.println("Pattern: " + node.getPattern());
+		}
+
+		return singleNodePatternTreeNodes;
 	}
 
 	public static void main(String[] args) {
@@ -279,38 +323,7 @@ public class TGFDDiscovery {
 		return matchesPerTimestamp;
 	}
 
-	private void calculateAverageInDegree(Map<String, List<Integer>> vertexTypesToInDegreesMap) {
-		System.out.println("Average in-degrees of vertex types...");
-		List<Double> avgInDegrees = new ArrayList<>();
-		for (Entry<String, List<Integer>> entry: vertexTypesToInDegreesMap.entrySet()) {
-			if (entry.getValue().size() == 0) continue;
-			entry.getValue().sort(Comparator.naturalOrder());
-			double avgInDegree = (double) entry.getValue().stream().mapToInt(Integer::intValue).sum() / (double) entry.getValue().size();
-			System.out.println(entry.getKey()+": "+avgInDegree);
-			avgInDegrees.add(avgInDegree);
-			Util.vertexTypesToAvgInDegreeMap.put(entry.getKey(), avgInDegree);
-		}
-//		double avgInDegree = avgInDegrees.stream().mapToDouble(Double::doubleValue).sum() / (double) avgInDegrees.size();
-		double avgInDegree = this.getHighOutlierThreshold(avgInDegrees);
-		Util.superVertexDegree = (Math.max(avgInDegree, Util.DEFAULT_AVG_SUPER_VERTEX_DEGREE));
-		System.out.println("Super vertex degree is "+ Util.superVertexDegree);
-	}
 
-	private void calculateMaxInDegree(Map<String, List<Integer>> vertexTypesToInDegreesMap) {
-		System.out.println("Max in-degrees of vertex types...");
-		List<Double> maxInDegrees = new ArrayList<>();
-		for (Entry<String, List<Integer>> entry: vertexTypesToInDegreesMap.entrySet()) {
-			if (entry.getValue().size() == 0) continue;
-			double maxInDegree = Collections.max(entry.getValue()).doubleValue();
-			System.out.println(entry.getKey()+": "+maxInDegree);
-			maxInDegrees.add(maxInDegree);
-			Util.vertexTypesToAvgInDegreeMap.put(entry.getKey(), maxInDegree);
-		}
-		double maxInDegree = getHighOutlierThreshold(maxInDegrees);
-		System.out.println("Based on histogram, high outlier threshold for in-degree is "+maxInDegree);
-		Util.superVertexDegree = (Math.max(maxInDegree, Util.DEFAULT_MAX_SUPER_VERTEX_DEGREE));
-		System.out.println("Super vertex degree is "+ Util.superVertexDegree);
-	}
 
 	private double getHighOutlierThreshold(List<Double> listOfDegrees) {
 		listOfDegrees.sort(Comparator.naturalOrder());
@@ -331,16 +344,6 @@ public class TGFDDiscovery {
 		return q3 + (9 * iqr);
 	}
 
-	private void calculateSuperVertexDegreeThreshold(Map<String, List<Integer>> vertexTypesToInDegreesMap) {
-		List<Long> listOfAverageDegreesAbove1 = new ArrayList<>();
-		System.out.println("Average in-degree of each vertex type...");
-		for (Entry<String, List<Integer>> entry: vertexTypesToInDegreesMap.entrySet()) {
-			long averageDegree = Math.round(entry.getValue().stream().reduce(0, Integer::sum).doubleValue() / (double) entry.getValue().size());
-			System.out.println(entry.getKey()+":"+averageDegree);
-			listOfAverageDegreesAbove1.add(averageDegree);
-		}
-		Util.superVertexDegree = (Math.max(Util.superVertexDegree, Math.round(listOfAverageDegreesAbove1.stream().reduce(0L, Long::sum).doubleValue() / (double) listOfAverageDegreesAbove1.size())));
-	}
 
 	public void loadGraphsAndComputeHistogram2() {
 		Util.divertOutputToSummaryFile();
@@ -397,98 +400,6 @@ public class TGFDDiscovery {
 			}
 		}
 		return literals;
-	}
-
-	public ArrayList<TGFD> getDummyVertexTypeTGFDs() {
-		ArrayList<TGFD> dummyTGFDs = new ArrayList<>();
-		for (Entry<String,Integer> frequentVertexTypeEntry : Util.sortedVertexHistogram) {
-			String frequentVertexType = frequentVertexTypeEntry.getKey();
-			VF2PatternGraph patternGraph = new VF2PatternGraph();
-			PatternVertex patternVertex = new PatternVertex(frequentVertexType);
-			patternGraph.addVertex(patternVertex);
-//			HashSet<ConstantLiteral> activeAttributes = getActiveAttributesInPattern(patternGraph.getPattern().vertexSet());
-//			for (ConstantLiteral activeAttribute: activeAttributes) {
-				TGFD dummyTGFD = new TGFD();
-				dummyTGFD.setName(frequentVertexType);
-				dummyTGFD.setPattern(patternGraph);
-//				Dependency dependency = new Dependency();
-//				dependency.addLiteralToY(activeAttribute);
-				dummyTGFDs.add(dummyTGFD);
-//			}
-		}
-		return dummyTGFDs;
-	}
-
-	public ArrayList<TGFD> getDummyEdgeTypeTGFDs() {
-		ArrayList<TGFD> dummyTGFDs = new ArrayList<>();
-
-		for (Entry<String,Integer> frequentEdgeEntry : Util.sortedFrequentEdgesHistogram) {
-			String frequentEdge = frequentEdgeEntry.getKey();
-			String[] info = frequentEdge.split(" ");
-			String sourceVertexType = info[0];
-			String edgeType = info[1];
-			String targetVertexType = info[2];
-			VF2PatternGraph patternGraph = new VF2PatternGraph();
-			PatternVertex sourceVertex = new PatternVertex(sourceVertexType);
-			patternGraph.addVertex(sourceVertex);
-			PatternVertex targetVertex = new PatternVertex(targetVertexType);
-			patternGraph.addVertex(targetVertex);
-			RelationshipEdge edge = new RelationshipEdge(edgeType);
-			patternGraph.addEdge(sourceVertex, targetVertex, edge);
-//			HashSet<ConstantLiteral> activeAttributes = getActiveAttributesInPattern(patternGraph.getPattern().vertexSet());
-//			for (ConstantLiteral activeAttribute: activeAttributes) {
-				TGFD dummyTGFD = new TGFD();
-				dummyTGFD.setName(frequentEdge.replaceAll(" ","_"));
-				dummyTGFD.setPattern(patternGraph);
-//				Dependency dependency = new Dependency();
-//				dependency.addLiteralToY(activeAttribute);
-				dummyTGFDs.add(dummyTGFD);
-//			}
-		}
-		return dummyTGFDs;
-	}
-
-	public void setSyntheticTimestampToFilesMapFromPath(String path) {
-		HashMap<String, List<String>> timestampToFilesMap = Util.generateSyntheticTimestampToFilesMapFromPath(path);
-		Util.setTimestampToFilesMap(new ArrayList<>(timestampToFilesMap.entrySet()));
-	}
-
-	protected void loadChangeFilesIntoMemory() {
-		HashMap<String, JSONArray> changeFilesMap = new HashMap<>();
-		if (Util.useOptChangeFile) { // TODO: Deprecate type changefiles?
-			for (Entry<String,Integer> frequentVertexTypeEntry : Util.vertexHistogram.entrySet()) {
-				for (int i = 0; i < Util.T - 1; i++) {
-					System.out.println("-----------Snapshot (" + (i + 2) + ")-----------");
-					String changeFilePath = "changes_t" + (i + 1) + "_t" + (i + 2) + "_" + frequentVertexTypeEntry.getKey() + ".json";
-					JSONArray jsonArray = Util.readJsonArrayFromFile(changeFilePath);
-					System.out.println("Storing " + changeFilePath + " in memory");
-					changeFilesMap.put(changeFilePath, jsonArray);
-				}
-			}
-		} else {
-			for (int i = 0; i < Util.T - 1; i++) {
-				System.out.println("-----------Snapshot (" + (i + 2) + ")-----------");
-				String changeFilePath = "changes_t" + (i + 1) + "_t" + (i + 2) + "_" + Util.graphSize + ".json";
-				JSONArray jsonArray = Util.readJsonArrayFromFile(changeFilePath);
-				System.out.println("Storing " + changeFilePath + " in memory");
-				changeFilesMap.put(changeFilePath, jsonArray);
-			}
-		}
-		Util.changeFilesMap = (changeFilesMap);
-	}
-
-
-	public void setCitationTimestampsAndFilePaths() {
-		ArrayList<String> filePaths = new ArrayList<>();
-		filePaths.add("dblp_papers_v11.txt");
-		filePaths.add("dblp.v12.json");
-		filePaths.add("dblpv13.json");
-		Map<String,List<String>> timestampstoFilePathsMap = new HashMap<>();
-		int timestampName = 11;
-		for (String filePath: filePaths) {
-			timestampstoFilePathsMap.put(String.valueOf(timestampName), Collections.singletonList(filePath));
-		}
-		Util.setTimestampToFilesMap(new ArrayList<>(timestampstoFilePathsMap.entrySet()));
 	}
 
 	public void vSpawnInitialTreeSets()
@@ -549,7 +460,8 @@ public class TGFDDiscovery {
 			Util.printWithTime("vSpawn", finalVspawnTime);
 
 			final long matchingStartTime = System.currentTimeMillis();
-			if (!Util.generatek0Tgfds) {
+			if (!Util.generatek0Tgfds)
+			{
 				if (Util.validationSearch)
 					this.getMatchesForPatternUsingVF2(patternTreeNode);
 				else if (Util.isIncremental)
@@ -580,7 +492,9 @@ public class TGFDDiscovery {
 				if (doesNotSatisfyTheta(patternTreeNode)) {
 					patternTreeNode.setIsPruned();
 				}
-			} else {
+			}
+			else
+			{
 				List<Set<Set<ConstantLiteral>>> matchesPerTimestamps;
 				if (Util.validationSearch)
 					matchesPerTimestamps = this.getMatchesForPatternUsingVF2(patternTreeNode);
@@ -588,7 +502,8 @@ public class TGFDDiscovery {
 					matchesPerTimestamps = this.getMatchesUsingIncrementalMatching(patternTreeNode);
 				else if (Util.useChangeFile)
 					matchesPerTimestamps = this.getMatchesUsingChangeFiles(patternTreeNode);
-				else {
+				else
+				{
 					LocalizedVF2Matching localizedVF2Matching;
 					if (Util.fastMatching)
 						localizedVF2Matching = new FastMatching(patternTreeNode.getPattern(), patternTreeNode.getCenterVertexParent(), Util.T, Util.onlyInterestingTGFDs, Util.getVertexTypesToActiveAttributesMap(), Util.reUseMatches);

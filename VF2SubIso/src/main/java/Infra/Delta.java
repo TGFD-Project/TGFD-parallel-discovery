@@ -1,10 +1,11 @@
 package Infra;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Period;
 import java.util.Objects;
 
-public class Delta {
+public class Delta implements Serializable {
 
     private Period min;
     private Period max;

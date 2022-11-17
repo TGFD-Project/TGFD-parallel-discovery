@@ -3,6 +3,7 @@ package Discovery;
 import ChangeExploration.Change;
 import ChangeExploration.ChangeLoader;
 import ICs.TGFD;
+import Infra.PatternTreeNode;
 import Infra.SimpleEdge;
 import Loader.GraphLoader;
 import Loader.SimpleDBPediaLoader;
@@ -11,12 +12,14 @@ import Loader.TGFDGenerator;
 import MPI.Consumer;
 import MPI.Producer;
 import ParalleRunner.Status;
+import SharedStorage.HDFSStorage;
 import Util.Config;
 import VF2BasedWorkload.Joblet;
 import VF2BasedWorkload.WorkloadEstimator;
 
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -67,11 +70,28 @@ public class Coordinator {
 
     //region --[Public Methods]-----------------------------------------
 
-    public void start()
-    {
+    public void start() throws IOException {
 
         tgfdDiscovery = new TGFDDiscovery(args);
-        tgfdDiscovery.start();
+        tgfdDiscovery.startLoading();
+
+        List<PatternTreeNode> singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
+
+        String tmpAddress = "";
+        HDFSStorage.upload("/dir1/",tmpAddress,singlePatternTreeNodes);
+
+        Producer messageProducer=new Producer();
+        messageProducer.connect();
+        StringBuilder message;
+        for (String worker: Config.workers) {
+            message= new StringBuilder();
+            message.append("#singlePattern").append("\t").append(tmpAddress);
+            messageProducer.send(worker,message.toString());
+            System.out.println("*JOBLET ASSIGNER*: joblets assigned to '" + worker + "' successfully");
+        }
+        messageProducer.close();
+        System.out.println("*Single Node Patterns  Sent*: All Patterns are assigned.");
+
 
         loadTheWorkload();
 
@@ -131,6 +151,50 @@ public class Coordinator {
     //endregion
 
     //region --[Private Methods]-----------------------------------------
+
+    private class VSpawnAssigner implements Runnable, ExceptionListener
+    {
+        @Override
+        public void run() {
+            System.out.println("*VSpawn ASSIGNER*: Coordinator starts VSpawn to assign PatternTreeNode");
+            try {
+                while(getStatus()==Status.Coordinator_Waits_For_Workers_Status) {
+                    System.out.println("*VSpawn ASSIGNER*: Coordinator waits for these workers to be online: ");
+                    for (String worker : workersStatus.keySet()) {
+                        if (!workersStatus.get(worker))
+                            System.out.print(worker + " - ");
+                    }
+                    Thread.sleep(Config.threadsIdleTime);
+                }
+                Producer messageProducer=new Producer();
+                messageProducer.connect();
+                StringBuilder message;
+                for (int workerID:estimator.getJobletsByFragmentID().keySet()) {
+                    message= new StringBuilder();
+                    message.append("#joblets").append("\n");
+                    for (Joblet joblet:estimator.getJobletsByFragmentID().get(workerID)) {
+                        message.append(joblet.getId()).append("#")
+                                .append(joblet.getCenterNode()).append("#")
+                                .append(joblet.getTGFD().getName())
+                                .append("\n");
+                    }
+                    messageProducer.send(Config.workers.get(workerID),message.toString());
+                    System.out.println("*JOBLET ASSIGNER*: joblets assigned to '" + Config.workers.get(workerID) + "' successfully");
+                }
+                messageProducer.close();
+                System.out.println("*JOBLET ASSIGNER*: All joblets are assigned.");
+                superstep.set(1);
+                workersResultsChecker.set(true);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onException(JMSException e) {
+            System.out.println("*JOBLET ASSIGNER*: JMS Exception occurred (JobletAssigner).  Shutting down coordinator.");
+        }
+    }
 
     private void loadTheWorkload()
     {

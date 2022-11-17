@@ -1,6 +1,8 @@
 package Infra;
 
-public class ConstantLiteral extends Literal {
+import java.io.Serializable;
+
+public class ConstantLiteral extends Literal implements Serializable {
 
     private String vertexType, attrName, attrValue;
     public ConstantLiteral(String vertexType, String attrName, String attrValue ) {

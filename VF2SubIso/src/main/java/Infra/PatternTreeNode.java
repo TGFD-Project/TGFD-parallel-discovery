@@ -2,9 +2,10 @@ package Infra;
 
 import org.jgrapht.Graph;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class PatternTreeNode {
+public class PatternTreeNode implements Serializable {
     private VF2PatternGraph pattern;
     private Double patternSupport = null;
     private final PatternTreeNode parentNode;

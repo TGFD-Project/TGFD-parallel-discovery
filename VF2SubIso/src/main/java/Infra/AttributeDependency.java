@@ -1,11 +1,12 @@
 package Infra;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-public class AttributeDependency {
+public class AttributeDependency implements Serializable {
     HashSet<ConstantLiteral> lhs;
     ConstantLiteral rhs;
     private Delta delta;
