@@ -11,6 +11,7 @@ public class testSingleNodePatterns {
 
 
     public static void main(String []args) throws IOException {
+        System.out.println("testSingleNodePatterns");
         Util.printToLogFile = false;
         TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
@@ -21,13 +22,13 @@ public class testSingleNodePatterns {
         for (PatternTreeNode node:singlePatternTreeNodes) {
 
             System.out.println(node.toString());
-            try {
-                HDFSStorage.upload("/dir1/", String.valueOf(id++), node);
-            }
-            catch (Exception e)
-            {
-                System.out.println(e.getMessage());
-            }
+//            try {
+//                HDFSStorage.upload("/dir1/", String.valueOf(id++), node);
+//            }
+//            catch (Exception e)
+//            {
+//                System.out.println(e.getMessage());
+//            }
         }
     }
 
