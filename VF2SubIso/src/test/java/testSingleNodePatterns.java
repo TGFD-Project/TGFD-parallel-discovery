@@ -12,9 +12,16 @@ public class testSingleNodePatterns {
 
     public static void main(String []args) throws IOException {
         System.out.println("testSingleNodePatterns");
-        Util.printToLogFile = false;
+        Util.printToLogFile = true;
         TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
+//        tgfdDiscovery.initialize();
+//
+//        Util.divertOutputToSummaryFile();
+//        System.out.println("---------------------------------------------------------------");
+//        System.out.println("                          Summary                              ");
+//        System.out.println("---------------------------------------------------------------");
+//        Util.printTimeStatistics();
 
         List<PatternTreeNode> singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
 
@@ -22,13 +29,13 @@ public class testSingleNodePatterns {
         for (PatternTreeNode node:singlePatternTreeNodes) {
 
             System.out.println(node.toString());
-//            try {
-//                HDFSStorage.upload("/dir1/", String.valueOf(id++), node);
-//            }
-//            catch (Exception e)
-//            {
-//                System.out.println(e.getMessage());
-//            }
+            try {
+                HDFSStorage.upload("/dir1/", String.valueOf(id++), node, false);
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.getMessage());
+            }
         }
     }
 

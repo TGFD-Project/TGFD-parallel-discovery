@@ -114,12 +114,6 @@ public class TGFDDiscovery {
 		return String.join("-", list);
 	}
 
-	public void startLoading()
-	{
-		final long startTime = System.currentTimeMillis();
-		loadGraphsAndComputeHistogram2();
-	}
-
 	public void start()
 	{
 		final long startTime = System.currentTimeMillis();

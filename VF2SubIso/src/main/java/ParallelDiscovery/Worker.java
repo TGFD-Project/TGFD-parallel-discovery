@@ -1,4 +1,4 @@
-package Discovery;
+package ParallelDiscovery;
 
 import ChangeExploration.Change;
 import Infra.RelationshipEdge;

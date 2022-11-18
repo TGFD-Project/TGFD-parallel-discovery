@@ -29,9 +29,10 @@ public class HDFSStorage {
         }
     }
 
-    public static boolean upload(String directoryName, String fileName, Object obj) throws IOException
+    public static boolean upload(String directoryName, String fileName, Object obj, boolean removeTemporaryFile) throws IOException
     {
-        String tempFileName="./tempGraph.ser";
+        boolean done = false;
+        String tempFileName="./"+fileName+"_"+Util.Config.generateRandomString(4)+".ser";
         try {
             FileOutputStream file = new FileOutputStream(tempFileName);
             ObjectOutputStream out = new ObjectOutputStream(file);
@@ -59,20 +60,22 @@ public class HDFSStorage {
             fileSystem.close();
 
             System.out.println("Uploading Done. [directory name: " + directoryName + "] [file name: " + fileName + "]");
-
-            System.out.println("Cleaning up the temporary storage...");
-            File fileToBeUploaded = new File(tempFileName);
-            boolean deleted = fileToBeUploaded.delete();
-            if (deleted)
-                System.out.println("All done.");
-            else
-                System.out.println("Couldn't delete the temporary file: '" + tempFileName + "' ");
-            return true;
+            done = true;
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        if(removeTemporaryFile)
+        {
+            System.out.println("Cleaning up the temporary storage...");
+            File fileToBeUploaded = new File(tempFileName);
+            boolean deleted = fileToBeUploaded.delete();
+            if (deleted)
+                System.out.println("Deleted the temporary file.");
+            else
+                System.out.println("Couldn't delete the temporary file: '" + tempFileName + "' ");
+        }
+        return done;
     }
 
     public static boolean upload(String directoryName, String fileName, String textToBeUploaded) {

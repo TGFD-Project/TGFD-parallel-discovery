@@ -1,7 +1,8 @@
-package Discovery;
+package ParallelDiscovery;
 
 import ChangeExploration.Change;
 import ChangeExploration.ChangeLoader;
+import Discovery.TGFDDiscovery;
 import ICs.TGFD;
 import Infra.PatternTreeNode;
 import Infra.SimpleEdge;
@@ -73,24 +74,24 @@ public class Coordinator {
     public void start() throws IOException {
 
         tgfdDiscovery = new TGFDDiscovery(args);
-        tgfdDiscovery.startLoading();
+        tgfdDiscovery.loadGraphsAndComputeHistogram2();
 
         List<PatternTreeNode> singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
 
-        String tmpAddress = "";
-        HDFSStorage.upload("/dir1/",tmpAddress,singlePatternTreeNodes);
+        String tmpName = "SinglePatterns_" + Config.generateRandomString(10);
+        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, true);
 
         Producer messageProducer=new Producer();
         messageProducer.connect();
         StringBuilder message;
         for (String worker: Config.workers) {
             message= new StringBuilder();
-            message.append("#singlePattern").append("\t").append(tmpAddress);
+            message.append("#singlePattern").append("\t").append(tmpName);
             messageProducer.send(worker,message.toString());
-            System.out.println("*JOBLET ASSIGNER*: joblets assigned to '" + worker + "' successfully");
+            System.out.println("*VSPawn Starter*: joblets assigned to '" + worker + "' successfully");
         }
         messageProducer.close();
-        System.out.println("*Single Node Patterns  Sent*: All Patterns are assigned.");
+        System.out.println("*VSPawn Starter*: All Single Node Patterns are assigned.");
 
 
         loadTheWorkload();

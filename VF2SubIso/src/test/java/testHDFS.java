@@ -4,6 +4,8 @@ import Infra.Delta;
 import Infra.RelationshipEdge;
 import Infra.VF2DataGraph;
 import SharedStorage.HDFSStorage;
+import Util.Config;
+import org.apache.kerby.config.Conf;
 
 import java.io.IOException;
 import java.time.Period;
@@ -22,6 +24,7 @@ public class testHDFS {
 //        FileSystem fs = FileSystem.get(URI.create("hdfs://130.113.158.134:9000/test5/"), conf);
 //        OutputStream out = fs.create(new Path("/test5/"));
 
+        Config.HDFSAddress = "hdfs://"+args[0]+":9000/";
 
         //HDFSStorage.createDirectory("/hadoop/test/");
         HDFSStorage.upload("/dir1/","testFromMyPC_2.txt","112212");
@@ -37,7 +40,9 @@ public class testHDFS {
 
         System.out.println("Now trying to upload an object");
 
-        VF2DataGraph t = (VF2DataGraph) HDFSStorage.downloadHDFSFile("/dir1/","tempGraph");
+        HDFSStorage.upload("/dir1/", "testGraph", generateDataGraph(), false);
+
+        VF2DataGraph t = (VF2DataGraph) HDFSStorage.downloadHDFSFile("/dir1/","testGraph");
 
         System.out.println("upload done.");
 

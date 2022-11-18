@@ -43,6 +43,8 @@ public class Config {
 
     public static String HDFSAddress="hdfs://vienna.cas.mcmaster.ca:9000/";
 
+    public static String HDFSDirectory = "/dir1/";
+
     public static void parse(String input) throws FileNotFoundException {
         if(input.equals("--help")) {
             System.out.println(" " +
