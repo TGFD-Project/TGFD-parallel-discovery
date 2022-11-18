@@ -267,7 +267,7 @@ public class DBPediaLoader extends GraphLoader {
                 }
                 else
                 {
-                    if(!Config.optimizedLoadingBasedOnTGFD || validAttributes.contains(predicate))
+                    if(!Config.optimizedLoadingBasedOnTGFD || !Config.optimizedLoadingBasedOnAttributesInTGFDs || (validAttributes.contains(predicate)))
                     {
                         subjVertex.addAttribute(new Attribute(predicate,objectNodeURI));
                         graphSize++;

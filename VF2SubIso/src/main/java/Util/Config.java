@@ -36,6 +36,9 @@ public class Config {
     public static boolean filterGraph = false;
 
     public static boolean optimizedLoadingBasedOnTGFD=false;
+
+    public static boolean optimizedLoadingBasedOnAttributesInTGFDs = false;
+
     public static boolean saveViolations=false;
     public static boolean debug =false;
 
