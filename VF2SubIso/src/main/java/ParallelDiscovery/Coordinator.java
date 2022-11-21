@@ -79,7 +79,7 @@ public class Coordinator {
         List<PatternTreeNode> singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
 
         String tmpName = "SinglePatterns_" + Config.generateRandomString(10);
-        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, true);
+        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, false);
 
         Producer messageProducer=new Producer();
         messageProducer.connect();

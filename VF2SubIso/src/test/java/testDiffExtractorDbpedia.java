@@ -150,19 +150,42 @@ public class testDiffExtractorDbpedia {
             }
         }
 
-        final StringWriter sw =new StringWriter();
-        final ObjectMapper mapper = new ObjectMapper();
-        try
-        {
-            mapper.writeValue(sw, allChanges);
-            FileWriter file = new FileWriter("./changes_t"+t1+"_t"+t2+"_"+tgfdName+".json");
-            file.write(sw.toString());
-            file.close();
-            System.out.println("Successfully wrote to the file.");
-            sw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+
+        System.out.println("Size: " + allChanges.size());
+        ArrayList<List<Change>> newSmallerChanges = new ArrayList<>();
+        List<Change> t = new ArrayList<>();
+        for (int i=0;i<allChanges.size()/4;i++)
+            t.add(allChanges.get(i));
+        newSmallerChanges.add(t);
+        t = new ArrayList<>();
+        for (int i=allChanges.size()/4 ; i<((allChanges.size()*2)/4) ; i++)
+            t.add(allChanges.get(i));
+        newSmallerChanges.add(t);
+        t = new ArrayList<>();
+        for (int i=((allChanges.size()*2)/4) ; i<((allChanges.size()*3)/4) ; i++)
+            t.add(allChanges.get(i));
+        newSmallerChanges.add(t);
+        t = new ArrayList<>();
+        for (int i=((allChanges.size()*3)/4);i<allChanges.size();i++)
+            t.add(allChanges.get(i));
+        newSmallerChanges.add(t);
+        int i=1;
+        for (List<Change> small:newSmallerChanges) {
+            try {
+                final StringWriter sw =new StringWriter();
+                final ObjectMapper mapper = new ObjectMapper();
+                mapper.writeValue(sw, small);
+                FileWriter file = new FileWriter("./changes_t" + t1 + "_t" + t2 + "_" + tgfdName + "_" + i + ".json");
+                file.write(sw.toString());
+                file.close();
+                System.out.println("Successfully wrote to the file.");
+                sw.close();
+                i++;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
         System.out.println("Total number of changes: " + allChanges.size());
         System.out.println("Edges: +" + insertChangeEdge + " ** -" + deleteChangeEdge);
         System.out.println("Vertices: +" + insertChangeVertex + " ** -" + deleteChangeVertex);

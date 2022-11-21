@@ -1,12 +1,14 @@
 package ParallelDiscovery;
 
 import ChangeExploration.Change;
+import Infra.PatternTreeNode;
 import Infra.RelationshipEdge;
 import Infra.SimpleEdge;
 import Infra.Vertex;
 import MPI.Consumer;
 import MPI.Producer;
 import Partitioner.Util;
+import SharedStorage.HDFSStorage;
 import SharedStorage.S3Storage;
 import Util.Config;
 import VF2BasedWorkload.JobletRunner;
@@ -28,6 +30,8 @@ public class Worker {
     private String workingBucketName="";
     private HashMap<Integer, ArrayList<SimpleEdge>> dataToBeShipped;
 
+    private List<PatternTreeNode> singlePatternTreeNodes;
+
     //endregion
 
     //region --[Constructor]-----------------------------------------
@@ -48,6 +52,8 @@ public class Worker {
     {
         sendStatusToCoordinator();
 
+        receiveSingleNodePatterns();
+
         runner=new JobletRunner();
         runner.load();
 
@@ -64,6 +70,31 @@ public class Worker {
     //endregion
 
     //region --[Private Methods]-----------------------------------------
+
+    private void receiveSingleNodePatterns()
+    {
+        boolean singlePatternTreeNodesRecieved=false;
+
+        Consumer consumer=new Consumer();
+        consumer.connect(nodeName);
+
+        while (!singlePatternTreeNodesRecieved)
+        {
+            String msg=consumer.receive();
+            if (msg !=null) {
+                if(msg.startsWith("#singlePattern"))
+                {
+                    String fileName = msg.split("\t")[1];
+                    singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadHDFSFile(Config.HDFSDirectory,fileName);
+                    System.out.println("All single PatternTreeNodes have been received.");
+                    singlePatternTreeNodesRecieved=true;
+                }
+            }
+            else
+                System.out.println("*SINGLE PATTERNTREENODE  RECEIVER*: Error happened - message is null");
+        }
+        consumer.close();
+    }
 
     private void runFirstSuperstep()
     {
