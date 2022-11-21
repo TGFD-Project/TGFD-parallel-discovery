@@ -37,6 +37,8 @@ public class testSingleNodePatterns {
                 System.out.println(e.getMessage());
             }
         }
+
+        HDFSStorage.upload("/dir1/","sortedFrequentEdgesHistogram_1", Util.sortedFrequentEdgesHistogram, false);
     }
 
 }

@@ -33,7 +33,6 @@ public class Util {
 
     //region --[Static Fields: Public]---------------------------------------
 
-
     public static final String TYPE_PREDICATE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     public static final int DEFAULT_NUM_OF_SNAPSHOTS = 3;
     public static final String NO_REUSE_MATCHES_PARAMETER_TEXT = "noReuseMatches";

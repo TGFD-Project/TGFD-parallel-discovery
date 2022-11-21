@@ -1,5 +1,7 @@
 package Infra;
 
+import java.io.Serializable;
+
 /**
  * A variable literal to assert that a value of an attribute of a pair of vertices are the same.
  *
@@ -11,7 +13,7 @@ package Infra;
  *       "city",   // attrName_1
  *       "city")   // attrName_2
  */
-public class VariableLiteral extends Literal
+public class VariableLiteral extends Literal implements Serializable
 {
     //region --[Fields: Private]---------------------------------------
     /** Vertex type of 1 */
