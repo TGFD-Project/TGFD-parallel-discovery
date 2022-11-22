@@ -1,6 +1,7 @@
 package ParallelDiscovery;
 
 import ChangeExploration.Change;
+import Discovery.TGFDDiscovery;
 import Infra.PatternTreeNode;
 import Infra.RelationshipEdge;
 import Infra.SimpleEdge;
@@ -32,11 +33,14 @@ public class Worker {
 
     private List<PatternTreeNode> singlePatternTreeNodes;
 
+    private TGFDDiscovery tgfdDiscovery;
+
     //endregion
 
     //region --[Constructor]-----------------------------------------
 
     public Worker()  {
+        tgfdDiscovery = new TGFDDiscovery();
         this.nodeName= Config.nodeName;
         workingBucketName = Config
                 .getFirstDataFilePath()
@@ -56,6 +60,8 @@ public class Worker {
 
         runner=new JobletRunner();
         runner.load();
+
+        tgfdDiscovery.vSpawnInit(singlePatternTreeNodes);
 
         runFirstSuperstep();
 

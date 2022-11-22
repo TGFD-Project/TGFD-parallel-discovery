@@ -88,7 +88,7 @@ public class Coordinator {
             message= new StringBuilder();
             message.append("#singlePattern").append("\t").append(tmpName);
             messageProducer.send(worker,message.toString());
-            System.out.println("*VSPawn Starter*: joblets assigned to '" + worker + "' successfully");
+            System.out.println("*VSPawn Starter*: Message for singlePattern nodes sent to '" + worker + "' successfully");
         }
         messageProducer.close();
         System.out.println("*VSPawn Starter*: All Single Node Patterns are assigned.");
