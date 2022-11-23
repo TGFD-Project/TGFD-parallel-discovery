@@ -42,6 +42,8 @@ public class Config {
     public static boolean saveViolations=false;
     public static boolean debug =false;
 
+    public static String path = "";
+
     public static String HDFSName = "fs.defaultFS";
 
     public static String HDFSAddress="hdfs://vienna.cas.mcmaster.ca:9000/";
@@ -92,7 +94,10 @@ public class Config {
                     optimizedLoadingBasedOnTGFD = Boolean.parseBoolean(conf[1]);
                 } else if (conf[0].equals("-debug")) {
                     debug = Boolean.parseBoolean(conf[1]);
-                } else if (conf[0].equals("-logcap")) {
+                }
+                else if (conf[0].equals("-path")) {
+                    path = String.valueOf(conf[1]);
+                }else if (conf[0].equals("-logcap")) {
                     String[] temp = conf[1].split(",");
                     for (String diffCap : temp)
                         diffCaps.add(Double.parseDouble(diffCap));

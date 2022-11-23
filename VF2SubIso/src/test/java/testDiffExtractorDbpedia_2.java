@@ -1,11 +1,11 @@
-
-
-import Loader.TGFDGenerator;
 import ChangeExploration.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import Loader.DBPediaLoader;
+import Discovery.TGFDDiscovery;
+import Discovery.Util;
 import ICs.TGFD;
+import Loader.DBPediaLoader;
+import Loader.TGFDGenerator;
 import Util.Config;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -16,13 +16,39 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class testDiffExtractorDbpedia {
+public class testDiffExtractorDbpedia_2 {
 
     public static void main(String []args) throws FileNotFoundException {
 
         System.out.println("Test extract diffs over DBPedia graph");
 
+        String []args2 = new String[args.length-1];
+        for (int i=1;i<args.length;i++)
+            args2[i-1] = args[i];
+
+        TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args2);
+        tgfdDiscovery.loadGraphsAndComputeHistogram2();
+
+        String[] info = {
+                String.join("=", "loader", Util.loader),
+                String.join("=", "|G|", Util.graphSize),
+                String.join("=", "t", Integer.toString(Util.T)),
+                String.join("=", "k", Integer.toString(Util.k)),
+                String.join("=", "pTheta", Double.toString(Util.patternTheta)),
+                String.join("=", "theta", Double.toString(Util.tgfdTheta)),
+                String.join("=", "gamma", Double.toString(Util.gamma)),
+                String.join("=", "frequentSetSize", Double.toString(Util.frequentSetSize)),
+                String.join("=", "interesting", Boolean.toString(Util.onlyInterestingTGFDs)),
+                String.join("=", "literalMax", Integer.toString(Util.maxNumOfLiterals)),
+                String.join("=", "noMinimalityPruning", Boolean.toString(!Util.hasMinimalityPruning)),
+                String.join("=", "noSupportPruning", Boolean.toString(!Util.hasSupportPruning)),
+                String.join("=", "fastMatching", Boolean.toString(Util.fastMatching)),
+                String.join("=", "interestLabels", Util.interestLabelsSet.toString()),
+        };
+
         Config.parse(args[0]);
+
+        System.out.println(String.join(", ", info));
 
         System.out.println(Config.getAllDataPaths().keySet() + " *** " + Config.getAllDataPaths().values());
         System.out.println(Config.getAllTypesPaths().keySet() + " *** " + Config.getAllTypesPaths().values());
@@ -41,21 +67,21 @@ public class testDiffExtractorDbpedia {
             name="noSpecificTGFDs";
 
         System.out.println("Generating the diff files for the TGFD: " + name);
-        Object[] ids= Config.getAllDataPaths().keySet().toArray();
-        Arrays.sort(ids);
         DBPediaLoader first, second=null;
         List<Change> allChanges;
         int t1,t2=0;
-        for (int i=0;i<ids.length;i+=2) {
+        for (int i=0;i<Util.graphs.size();i+=2) {
 
-            System.out.println("===========Snapshot (" + ids[i] + ")===========");
+            System.out.println("===========Snapshot (" + i + ")===========");
             long startTime = System.currentTimeMillis();
 
-            t1=(int)ids[i];
-            first = new DBPediaLoader(allTGFDs, Config.getAllTypesPaths().get((int) ids[i]),
-                    Config.getAllDataPaths().get((int) ids[i]));
+            t1=i;
 
-            printWithTime("Load graph (" + ids[i] + ")", System.currentTimeMillis() - startTime);
+            first = (DBPediaLoader) Util.graphs.get(i);
+//            first = new DBPediaLoader(allTGFDs, Config.getAllTypesPaths().get((int) ids[i]),
+//                    Config.getAllDataPaths().get((int) ids[i]));
+
+            printWithTime("Load graph (" + i + ")", System.currentTimeMillis() - startTime);
 
             //
             if(second!=null)
@@ -66,17 +92,18 @@ public class testDiffExtractorDbpedia {
                 analyzeChanges(allChanges,allTGFDs,second.getGraphSize(),cFinder.getNumberOfEffectiveChanges(),t2,t1,name, Config.getDiffCaps());
             }
 
-            if(i+1>=ids.length)
+            if(i+1>=Util.graphs.size())
                 break;
 
-            System.out.println("===========Snapshot (" + ids[i+1] + ")===========");
+            System.out.println("===========Snapshot (" + i+1 + ")===========");
             startTime = System.currentTimeMillis();
 
-            t2=(int)ids[i+1];
-            second = new DBPediaLoader(allTGFDs, Config.getAllTypesPaths().get((int) ids[i+1]),
-                    Config.getAllDataPaths().get((int) ids[i+1]));
+            t2=i+1;
+            second = (DBPediaLoader) Util.graphs.get(i+1);
+//            second = new DBPediaLoader(allTGFDs, Config.getAllTypesPaths().get((int) ids[i+1]),
+//                    Config.getAllDataPaths().get((int) ids[i+1]));
 
-            printWithTime("Load graph (" + ids[i+1] + ")", System.currentTimeMillis() - startTime);
+            printWithTime("Load graph (" + i+1 + ")", System.currentTimeMillis() - startTime);
 
             //
             ChangeFinder cFinder=new ChangeFinder(first,second,allTGFDs);
