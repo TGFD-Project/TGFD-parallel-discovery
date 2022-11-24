@@ -26,14 +26,21 @@ public class DBPediaPartitioner_2 {
         this.numberOfPartitions=numberOfPartitions;
     }
 
-    public void partition(String pathToFile, String savingDirectory)
+    public HashMap<DataVertex,Integer> partition()
     {
         System.out.println("Start partitioning...");
         RangeBasedPartitioner partitioner=new RangeBasedPartitioner(dbpedia.getGraph());
         HashMap<DataVertex,Integer> partitionMapping=partitioner.fragment(numberOfPartitions);
         System.out.println("Partitioning done.");
 
-        StringBuilder []data=new StringBuilder[numberOfPartitions];
+        return partitionMapping;
+    }
+
+    public void partition(String pathToFile, String savingDirectory, HashMap<DataVertex,Integer> partitionMapping, int time)
+    {
+
+
+        StringBuilder []data=new StringBuilder[numberOfPartitions+1];
 
 
         for (int i = 0; i < data.length; i++)
@@ -45,18 +52,18 @@ public class DBPediaPartitioner_2 {
         try
         {
             for (int i = 0; i < data.length; i++) {
-                FileWriter file = new FileWriter(savingDirectory + "DBPedia_data" + i + ".nt");
+                FileWriter file = new FileWriter(savingDirectory + "DBPedia_data" + i + "_" + time + ".nt");
                 file.write(data[i].toString());
                 file.flush();
                 file.close();
             }
 
-            FileWriter file = new FileWriter(savingDirectory + "map_"+numberOfPartitions+".txt");
-            for (DataVertex v:partitionMapping.keySet()) {
-                file.write(v.getVertexURI() + "\t" + partitionMapping.get(v));
-            }
-            file.flush();
-            file.close();
+//            FileWriter file = new FileWriter(savingDirectory + "map_"+numberOfPartitions+".txt");
+//            for (DataVertex v:partitionMapping.keySet()) {
+//                file.write(v.getVertexURI() + "\t" + partitionMapping.get(v));
+//            }
+//            file.flush();
+//            file.close();
 
             System.out.println("Done.");
         }
@@ -103,7 +110,7 @@ public class DBPediaPartitioner_2 {
                 br = new BufferedReader(new FileReader(filePath));
             }
 
-            String line= br.readLine();
+            String line= br.readLine().toLowerCase();
             int partitionID = -1;
             while (line!=null) {
                 if(line.startsWith("<http://dbpedia.org/resource/"))
@@ -115,10 +122,17 @@ public class DBPediaPartitioner_2 {
                         sb[partitionID].append(line).append("\n");
                         //partitionData.get(partitionID).append(line).append("\n");
                     }
+                    else
+                    {
+                        sb[sb.length-1].append(line).append("\n");
+                        partitionID = -1;
+                    }
                 }
                 else if(partitionID!=-1)
                     sb[partitionID].append(line).append("\n");
-                line= br.readLine();
+                else
+                    sb[sb.length-1].append(line).append("\n");
+                line= br.readLine().toLowerCase();
             }
             if (fullObject != null) {
                 fullObject.close();

@@ -1,6 +1,7 @@
 import Discovery.TGFDDiscovery;
 import Discovery.Util;
 import ICs.TGFD;
+import Infra.DataVertex;
 import Loader.DBPediaLoader;
 import Loader.IMDBLoader;
 import Partitioner.DBPediaPartitioner_2;
@@ -9,6 +10,7 @@ import Util.Config;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class testDBPediaPartitioner {
 
@@ -39,6 +41,10 @@ public class testDBPediaPartitioner {
         System.out.println(String.join(", ", info));
 
         DBPediaPartitioner_2 partitioner=new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0),2);
-        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2014\\2014-50000.ttl","./");
+        HashMap<DataVertex,Integer> mapping = partitioner.partition();
+        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2014\\2014-50000.ttl","./", mapping,2014);
+        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2015\\2015-50000.ttl","./", mapping,2015);
+        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2016\\2016-50000.ttl","./", mapping,2016);
+        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2017\\2017-50000.ttl","./", mapping,2017);
     }
 }
