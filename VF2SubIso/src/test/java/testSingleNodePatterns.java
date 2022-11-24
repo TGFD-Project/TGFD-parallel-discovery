@@ -24,14 +24,8 @@ public class testSingleNodePatterns {
 //        System.out.println("---------------------------------------------------------------");
 //        Util.printTimeStatistics();
 
-        tgfdDiscovery.vSpawnInit();
+        tgfdDiscovery.start();
 
-        if (Util.generatek0Tgfds) {
-            Util.printTgfdsToFile(Util.experimentName, Util.discoveredTgfds.get(Util.currentVSpawnLevel));
-        }
-        Util.kRuntimes.add(System.currentTimeMillis() - Util.discoveryStartTime);
-        Util.printSupportStatisticsForThisSnapshot();
-        Util.printTimeStatisticsForThisSnapshot(Util.currentVSpawnLevel);
 //
 //        int id =0;
 //        for (PatternTreeNode node:singlePatternTreeNodes) {
