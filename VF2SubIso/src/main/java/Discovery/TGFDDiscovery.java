@@ -4,6 +4,7 @@ import ICs.TGFD;
 import IncrementalRunner.IncUpdates;
 import IncrementalRunner.IncrementalChange;
 import Infra.*;
+import SharedStorage.HDFSStorage;
 import VF2Runner.*;
 import ChangeExploration.*;
 import Loader.DBPediaLoader;
@@ -17,6 +18,7 @@ import org.jgrapht.GraphMapping;
 import org.jgrapht.alg.isomorphism.VF2AbstractIsomorphismInspector;
 import org.json.simple.JSONArray;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -129,6 +131,7 @@ public class TGFDDiscovery {
 		Util.patternTree.addLevel();
 		Util.setCurrentVSpawnLevel(Util.currentVSpawnLevel + 1);
 
+		int count =0;
 		while (Util.currentVSpawnLevel <= Util.k) {
 
 			PatternTreeNode patternTreeNode = null;
@@ -165,6 +168,18 @@ public class TGFDDiscovery {
 
 			final long hSpawnStartTime = System.currentTimeMillis();
 			HSpawn hspawn = new HSpawn(patternTreeNode, matchesPerTimestamps);
+//			try {
+//				HDFSStorage.upload("/dir1/", "patternTreeNode_"+count, patternTreeNode,false);
+//			} catch (IOException e) {
+//				throw new RuntimeException(e);
+//			}
+//			try {
+//				HDFSStorage.upload("/dir1/", "matchesPerTimestamps_"+count, matchesPerTimestamps,false);
+//			} catch (IOException e) {
+//				throw new RuntimeException(e);
+//			}
+//			count++;
+
 			ArrayList<TGFD> tgfds = hspawn.performHSPawn();
 			Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
 			Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(tgfds);

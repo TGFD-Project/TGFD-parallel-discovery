@@ -1,12 +1,13 @@
 import Discovery.TGFDDiscovery;
 import Discovery.Util;
+import Infra.MapEntry;
 import Infra.PatternTreeNode;
 import SharedStorage.HDFSStorage;
 import org.apache.commons.math3.analysis.function.Exp;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class testSingleNodePatterns {
 
@@ -14,8 +15,29 @@ public class testSingleNodePatterns {
     public static void main(String []args) throws IOException {
         System.out.println("testSingleNodePatterns");
         Util.printToLogFile = true;
+        Util.isStoreInMemory = false;
         TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
+
+        HDFSStorage.upload("/dir1/", "vertexTypesToAvgInDegreeMap", Util.vertexTypesToAvgInDegreeMap,true);
+        HDFSStorage.upload("/dir1/", "activeAttributesSet", Util.activeAttributesSet,true);
+        HDFSStorage.upload("/dir1/", "vertexTypesToActiveAttributesMap", Util.vertexTypesToActiveAttributesMap,true);
+
+        List<MapEntry> listSortedFrequentEdgesHistogram = new ArrayList<>();
+        for (Map.Entry<String, Integer> m:Util.sortedFrequentEdgesHistogram) {
+            listSortedFrequentEdgesHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+        }
+
+        HDFSStorage.upload("/dir1/", "sortedFrequentEdgesHistogram", listSortedFrequentEdgesHistogram,true);
+
+        List<MapEntry> listSortedVertexHistogram = new ArrayList<>();
+        for (Map.Entry<String, Integer> m:Util.sortedVertexHistogram) {
+            listSortedVertexHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+        }
+        HDFSStorage.upload("/dir1/", "sortedVertexHistogram", listSortedVertexHistogram,true);
+        HDFSStorage.upload("/dir1/", "vertexHistogram", Util.vertexHistogram,true);
+        HDFSStorage.upload("/dir1/", "totalHistogramTime", Util.totalHistogramTime,true);
+        HDFSStorage.upload("/dir1/", "typeChangeURIs", Util.typeChangeURIs,true);
 //        tgfdDiscovery.initialize();
 //
 //        Util.divertOutputToSummaryFile();

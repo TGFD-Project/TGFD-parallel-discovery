@@ -1,27 +1,47 @@
+import Infra.ConstantLiteral;
 import Infra.PatternTreeNode;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class testLocalFiles {
 
     public static void main(String []args) throws IOException, ClassNotFoundException {
         ArrayList<String>files = new ArrayList<>();
-        files.add("0_732d.ser");
-        files.add("1_17de.ser");
-        files.add("2_9bfd.ser");
-        files.add("3_6c48.ser");
-        files.add("4_0fc7.ser");
-        files.add("5_b738.ser");
-        files.add("6_4ed1.ser");
-        for (String file:files) {
-            InputStream inputStream = new BufferedInputStream(new FileInputStream("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\"+file));
+        ArrayList<String>files2 = new ArrayList<>();
+        //files.add("matchesPerTimestamps_0_b5ec.ser");
+        files.add("matchesPerTimestamps_1_141b.ser");
+        files.add("matchesPerTimestamps_2_0cf5.ser");
+        files.add("matchesPerTimestamps_3_2f63.ser");
+        files.add("matchesPerTimestamps_4_098a.ser");
+
+        //files2.add("patternTreeNode_0_170e.ser");
+        files2.add("patternTreeNode_1_f6bb.ser");
+        files2.add("patternTreeNode_2_bb5c.ser");
+        files2.add("patternTreeNode_3_8feb.ser");
+        files2.add("patternTreeNode_4_5f0d.ser");
+        //files.add("1_17de.ser");
+        for (int i=0;i<files.size();i++) {
+
+
+            InputStream inputStream = new BufferedInputStream(new FileInputStream("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\"+files2.get(i)));
             ObjectInputStream in = new ObjectInputStream(inputStream);
             Object obj = in.readObject();
-            PatternTreeNode node = (PatternTreeNode) obj;
-            System.out.println(node.getPattern().getPattern());
+            PatternTreeNode patternTreeNode = (PatternTreeNode) obj;
+
+
+            String fileName="C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\"+files.get(i);
+             inputStream = new BufferedInputStream(new FileInputStream(fileName));
+             in = new ObjectInputStream(inputStream);
+             obj = in.readObject();
+            List<Set<Set<ConstantLiteral>>> matchesPerTimestamps = (List<Set<Set<ConstantLiteral>>>) obj;
+
+            System.out.println("");
         }
     }
 

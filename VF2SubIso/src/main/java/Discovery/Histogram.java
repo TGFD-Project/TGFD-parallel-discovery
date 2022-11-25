@@ -1,4 +1,4 @@
-package Infra;
+package Discovery;
 
 import Discovery.Util;
 import IncrementalRunner.IncUpdates;
@@ -7,6 +7,9 @@ import ChangeExploration.Change;
 import ChangeExploration.ChangeLoader;
 import ChangeExploration.ChangeType;
 import ChangeExploration.TypeChange;
+import Infra.Attribute;
+import Infra.RelationshipEdge;
+import Infra.Vertex;
 import Loader.DBPediaLoader;
 import Loader.GraphLoader;
 import Loader.IMDBLoader;

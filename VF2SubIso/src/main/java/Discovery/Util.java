@@ -66,7 +66,12 @@ public class Util {
     public static boolean skipK1 = false;
     public static Integer numOfEdgesInAllGraphs = 0;
     public static int numOfVerticesInAllGraphs = 0;
-    public static Map<String, Set<String>> vertexTypesToActiveAttributesMap; // freq attributes come from here
+    public static int numOfConsistentRHS = 0;
+    public static PrintStream logStream = null;
+    public static PrintStream summaryStream = null;
+    public static boolean printToLogFile = false;
+    public static int numOfCandidateGeneralTGFDs = 0;
+    public static boolean isIncremental = false;
     public static PatternTree patternTree;
     public static boolean hasMinimalityPruning = true;
     public static String graphSize = null;
@@ -80,16 +85,27 @@ public class Util {
     public static int previousLevelNodeIndex = 0;
     public static int candidateEdgeIndex = 0;
     public static int currentVSpawnLevel = 0;
-    public static ArrayList<ArrayList<TGFD>> discoveredTgfds;
     public static long discoveryStartTime;
-    public static final ArrayList<Long> kRuntimes = new ArrayList<>();
     public static String experimentStartTimeAndDateStamp = null;
     public static boolean kExperiment = false;
     public static boolean useChangeFile = false;
+    public static boolean hasSupportPruning = true;
+    public static String experimentName;
+
+    public static String loader;
+    public static long totalHistogramTime = 0;
+    public static boolean isStoreInMemory = true;
+
+
+
+    public static Map<String, Set<String>> vertexTypesToActiveAttributesMap; // freq attributes come from here
+    public static Map<String, Set<String>> typeChangeURIs;
+
+    public static ArrayList<ArrayList<TGFD>> discoveredTgfds;
+    public static final ArrayList<Long> kRuntimes = new ArrayList<>();
     public static List<Map.Entry<String, Integer>> sortedVertexHistogram; // freq nodes come from here
     public static List<Map.Entry<String, Integer>> sortedFrequentEdgesHistogram = null; // freq edges come from here
     public static Map<String, Integer> vertexHistogram;
-    public static boolean hasSupportPruning = true;
     public static final List<Double> medianPatternSupportsList = new ArrayList<>();
     public static ArrayList<Double> patternSupportsListForThisSnapshot = new ArrayList<>();
     public static final List<Double> medianConstantTgfdSupportsList = new ArrayList<>();
@@ -107,25 +123,14 @@ public class Util {
     public static final List<Long> totalVSpawnTime = new ArrayList<>();
     public static final List<Long> totalDiscoverConstantTGFDsTime = new ArrayList<>();
     public static final List<Long> totalDiscoverGeneralTGFDTime = new ArrayList<>();
-    public static String experimentName;
-    public static String loader;
     public static List<Map.Entry<String, List<String>>> timestampToFilesMap = new ArrayList<>();
     public static HashMap<String, JSONArray> changeFilesMap = null;
     public static List<GraphLoader> graphs;
-    public static boolean isStoreInMemory = true;
     public static Map<String, Double> vertexTypesToAvgInDegreeMap = new HashMap<>();
     public static Model firstSnapshotTypeModel = null;
     public static Model firstSnapshotDataModel = null;
-    public static long totalHistogramTime = 0;
     public static final Set<String> interestLabelsSet = new HashSet<>();
     public static final List<Integer> rhsInconsistencies = new ArrayList<>();
-    public static int numOfConsistentRHS = 0;
-    public static PrintStream logStream = null;
-    public static PrintStream summaryStream = null;
-    public static boolean printToLogFile = false;
-    public static int numOfCandidateGeneralTGFDs = 0;
-    public static Map<String, Set<String>> typeChangeURIs;
-    public static boolean isIncremental = false;
 
     //endregion
 
