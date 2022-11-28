@@ -25,61 +25,55 @@ import java.util.concurrent.TimeUnit;
 public class TaskRunner {
 
     private GraphLoader loader=null;
-    private List<TGFD> tgfds;
-    private HashMap<String, TGFD> tgfdByName=new HashMap<>();
     private long wallClockTime=0;
-    private HashMap<Integer, Joblet> assignedJoblets;
-    private String jobletsInRawString;
+    private HashMap<Integer, Job> assignedJobs;
+    private String jobsInRawString;
 
 
     private HashMap <String, MatchCollection> matchCollectionHashMap;
 
     public TaskRunner()
     {
-        System.out.println("Test Incremental algorithm for the "+ Config.datasetName +" dataset from testRunner");
-        assignedJoblets=new HashMap<>();
+        System.out.println("Incremental algorithm for the "+ Config.datasetName +" dataset from taskRunner");
+        assignedJobs=new HashMap<>();
     }
 
     public void load()
     {
         long startTime=System.currentTimeMillis();
 
-        TGFDGenerator generator = new TGFDGenerator(Config.patternPath);
-        tgfds=generator.getTGFDs();
-        tgfds.forEach(tgfd -> tgfdByName.put(tgfd.getName(), tgfd));
-
         //Load the first timestamp
         System.out.println("===========Snapshot 1 (" + Config.getTimestamps().get(1) + ")===========");
 
         if(Config.datasetName== Config.dataset.dbpedia)
-            loader = new DBPediaLoader(tgfds, Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+            loader = new DBPediaLoader(new ArrayList<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
         else if(Config.datasetName == Config.dataset.synthetic)
-            loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
+            loader = new SyntheticLoader(new ArrayList<>(), Config.getFirstDataFilePath());
         else if(Config.datasetName == Config.dataset.pdd)
-            loader = new PDDLoader(tgfds, Config.getFirstDataFilePath());
+            loader = new PDDLoader(new ArrayList<>(), Config.getFirstDataFilePath());
         else if(Config.datasetName == Config.dataset.imdb) // default is imdb
-            loader = new IMDBLoader(tgfds, Config.getFirstDataFilePath());
+            loader = new IMDBLoader(new ArrayList<>(), Config.getFirstDataFilePath());
 
         printWithTime("Load graph 1 (" + Config.getTimestamps().get(1) + ")", System.currentTimeMillis()-startTime);
         wallClockTime+=System.currentTimeMillis()-startTime;
     }
 
-    public void setJobletsInRawString(String jobletsInRawString) {
-        this.jobletsInRawString = jobletsInRawString;
+    public void setJobsInRawString(String jobsInRawString) {
+        this.jobsInRawString = jobsInRawString;
     }
 
-    public void generateJoblets()
+    public void generateJobs()
     {
-        if(jobletsInRawString!=null)
+        if(jobsInRawString!=null)
         {
-            String []temp=jobletsInRawString.split("\n");
+            String []temp=jobsInRawString.split("\n");
             for (int i=1;i<temp.length;i++)
             {
                 String []arr=temp[i].split("#");
                 if(arr.length==3)
                 {
-                    Joblet joblet=new Joblet(Integer.parseInt(arr[0]),(DataVertex) loader.getGraph().getNode(arr[1]),tgfdByName.get(arr[2]),tgfdByName.get(arr[2]).getPattern().getDiameter(),0);
-                    assignedJoblets.put(joblet.getId(), joblet);
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loader.getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0);
+                    assignedJobs.put(job.getId(), job);
                 }
             }
         }
@@ -108,9 +102,9 @@ public class TaskRunner {
         VF2SubgraphIsomorphism VF2 = new VF2SubgraphIsomorphism();
 
         startTime=System.currentTimeMillis();
-        for (Joblet joblet:assignedJoblets.values()) {
-            Graph<Vertex, RelationshipEdge> subgraph = loader.getGraph().getSubGraphWithinDiameter(joblet.getCenterNode(), joblet.getDiameter(),joblet.getTGFD());
-            joblet.setSubgraph(subgraph);
+        for (Job job:assignedJobs.values()) {
+            Graph<Vertex, RelationshipEdge> subgraph = loader.getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),joblet.getTGFD());
+            job.setSubgraph(subgraph);
             Iterator <GraphMapping <Vertex, RelationshipEdge>> results= VF2.execute(subgraph, joblet.getTGFD().getPattern(),false);
             matchCollectionHashMap.get(joblet.getTGFD().getName()).addMatches(currentSnapshotDate,results);
         }

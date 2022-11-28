@@ -2,6 +2,7 @@ package ParallelDiscovery;
 
 import ChangeExploration.Change;
 import Discovery.TGFDDiscovery;
+import Discovery.TaskRunner;
 import Infra.PatternTreeNode;
 import Infra.RelationshipEdge;
 import Infra.SimpleEdge;
@@ -27,7 +28,7 @@ public class Worker {
     //region --[Fields: Private]---------------------------------------
 
     private String nodeName = "";
-    private JobletRunner runner;
+    private TaskRunner runner;
     private String workingBucketName="";
     private HashMap<Integer, ArrayList<SimpleEdge>> dataToBeShipped;
 
@@ -58,7 +59,7 @@ public class Worker {
 
         receiveSingleNodePatterns();
 
-        runner=new JobletRunner();
+        runner=new TaskRunner();
         runner.load();
 
         tgfdDiscovery.vSpawnInit(singlePatternTreeNodes);
@@ -115,7 +116,7 @@ public class Worker {
             if (msg !=null) {
                 if(msg.startsWith("#joblets"))
                 {
-                    runner.setJobletsInRawString(msg);
+                    runner.setJobsInRawString(msg);
                     System.out.println("The joblets have been received.");
                     jobletsRecieved=true;
                 }
@@ -171,7 +172,7 @@ public class Worker {
         }
         consumer.close();
 
-        runner.generateJoblets();
+        runner.generateJobs();
         runner.runTheFirstSnapshot();
 
         Producer messageProducer=new Producer();
