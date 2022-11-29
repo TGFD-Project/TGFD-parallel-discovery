@@ -82,7 +82,6 @@ public class DeltaDiscovery {
             long discoverGeneralTGFDTime = System.currentTimeMillis();
 
             DiscoverGeneralTGFD discoverGeneralTGFD = new DiscoverGeneralTGFD(patternNode, patternNode.getPatternSupport(), literalPath, entities.size(), deltaToPairsMap, literalTreeNode);
-
             ArrayList<TGFD> generalTGFDs = discoverGeneralTGFD.discover();
             discoverGeneralTGFDTime = System.currentTimeMillis() - discoverGeneralTGFDTime;
             Util.printWithTime("discoverGeneralTGFDTime", discoverGeneralTGFDTime);

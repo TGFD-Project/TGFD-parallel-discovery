@@ -24,6 +24,7 @@ public class DiscoverGeneralTGFD {
         this.entitiesSize = entitiesSize;
         this.deltaToPairsMap = deltaToPairsMap;
         this.literalTreeNode = literalTreeNode;
+        this.literalPath = literalPath;
     }
 
     public ArrayList<TGFD> discover()

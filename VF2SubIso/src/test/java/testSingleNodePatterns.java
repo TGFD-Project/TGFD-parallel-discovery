@@ -19,32 +19,26 @@ public class testSingleNodePatterns {
         TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
 
-        HDFSStorage.upload("/dir1/", "vertexTypesToAvgInDegreeMap", Util.vertexTypesToAvgInDegreeMap,true);
-        HDFSStorage.upload("/dir1/", "activeAttributesSet", Util.activeAttributesSet,true);
-        HDFSStorage.upload("/dir1/", "vertexTypesToActiveAttributesMap", Util.vertexTypesToActiveAttributesMap,true);
+//        HDFSStorage.upload("/dir1/", "vertexTypesToAvgInDegreeMap", Util.vertexTypesToAvgInDegreeMap,true);
+//        HDFSStorage.upload("/dir1/", "activeAttributesSet", Util.activeAttributesSet,true);
+//        HDFSStorage.upload("/dir1/", "vertexTypesToActiveAttributesMap", Util.vertexTypesToActiveAttributesMap,true);
 
-        List<MapEntry> listSortedFrequentEdgesHistogram = new ArrayList<>();
-        for (Map.Entry<String, Integer> m:Util.sortedFrequentEdgesHistogram) {
-            listSortedFrequentEdgesHistogram.add(new MapEntry(m.getKey(), m.getValue()));
-        }
-
-        HDFSStorage.upload("/dir1/", "sortedFrequentEdgesHistogram", listSortedFrequentEdgesHistogram,true);
-
-        List<MapEntry> listSortedVertexHistogram = new ArrayList<>();
-        for (Map.Entry<String, Integer> m:Util.sortedVertexHistogram) {
-            listSortedVertexHistogram.add(new MapEntry(m.getKey(), m.getValue()));
-        }
-        HDFSStorage.upload("/dir1/", "sortedVertexHistogram", listSortedVertexHistogram,true);
-        HDFSStorage.upload("/dir1/", "vertexHistogram", Util.vertexHistogram,true);
-        HDFSStorage.upload("/dir1/", "totalHistogramTime", Util.totalHistogramTime,true);
-        HDFSStorage.upload("/dir1/", "typeChangeURIs", Util.typeChangeURIs,true);
-//        tgfdDiscovery.initialize();
+//        List<MapEntry> listSortedFrequentEdgesHistogram = new ArrayList<>();
+//        for (Map.Entry<String, Integer> m:Util.sortedFrequentEdgesHistogram) {
+//            listSortedFrequentEdgesHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+//        }
 //
-//        Util.divertOutputToSummaryFile();
-//        System.out.println("---------------------------------------------------------------");
-//        System.out.println("                          Summary                              ");
-//        System.out.println("---------------------------------------------------------------");
-//        Util.printTimeStatistics();
+//        HDFSStorage.upload("/dir1/", "sortedFrequentEdgesHistogram", listSortedFrequentEdgesHistogram,true);
+//
+//        List<MapEntry> listSortedVertexHistogram = new ArrayList<>();
+//        for (Map.Entry<String, Integer> m:Util.sortedVertexHistogram) {
+//            listSortedVertexHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+//        }
+//        HDFSStorage.upload("/dir1/", "sortedVertexHistogram", listSortedVertexHistogram,true);
+//        HDFSStorage.upload("/dir1/", "vertexHistogram", Util.vertexHistogram,true);
+//        HDFSStorage.upload("/dir1/", "totalHistogramTime", Util.totalHistogramTime,true);
+//        HDFSStorage.upload("/dir1/", "typeChangeURIs", Util.typeChangeURIs,true);
+        
 
         tgfdDiscovery.start();
 

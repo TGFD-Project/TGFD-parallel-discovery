@@ -1,5 +1,6 @@
 package Infra;
 
+import Discovery.Util;
 import QPathBasedWorkload.VertexMapping;
 import org.jgrapht.GraphMapping;
 
@@ -547,6 +548,92 @@ public final class Match {
             }
         }
         return match;
+    }
+
+    public static String extractMatch(GraphMapping<Vertex, RelationshipEdge> result, PatternTreeNode patternTreeNode, HashSet<ConstantLiteral> match, Map<String, Integer> interestingnessMap) {
+        String entityURI = null;
+        for (Vertex v : patternTreeNode.getGraph().vertexSet()) {
+            Vertex currentMatchedVertex = result.getVertexCorrespondence(v, false);
+            if (currentMatchedVertex == null) continue;
+            String patternVertexType = v.getTypes().iterator().next();
+            if (entityURI == null) {
+                entityURI = extractAttributes(patternTreeNode, patternVertexType, match, currentMatchedVertex, interestingnessMap);
+            } else {
+                extractAttributes(patternTreeNode, patternVertexType, match, currentMatchedVertex, interestingnessMap);
+            }
+        }
+        return entityURI;
+    }
+
+    public static int extractMatches(Iterator<GraphMapping<Vertex, RelationshipEdge>> iterator, ArrayList<HashSet<ConstantLiteral>> matches, PatternTreeNode patternTreeNode, Map<String, List<Integer>> entityURIs, int timestamp) {
+        int numOfMatches = 0;
+        while (iterator.hasNext()) {
+            numOfMatches++;
+            GraphMapping<Vertex, RelationshipEdge> result = iterator.next();
+            HashSet<ConstantLiteral> literalsInMatch = new HashSet<>();
+            Map<String, Integer> interestingnessMap = new HashMap<>();
+            String entityURI = Match.extractMatch(result, patternTreeNode, literalsInMatch, interestingnessMap);
+            // ensures that the match is not empty and contains more than just the uri attribute
+            if (Util.onlyInterestingTGFDs && interestingnessMap.values().stream().anyMatch(n -> n < 2)) {
+                continue;
+            } else if (!Util.onlyInterestingTGFDs && literalsInMatch.size() < patternTreeNode.getGraph().vertexSet().size()) {
+                continue;
+            }
+            if (entityURI != null) {
+                entityURIs.putIfAbsent(entityURI, Util.createEmptyArrayListOfSize(Util.numOfSnapshots));
+                entityURIs.get(entityURI).set(timestamp, entityURIs.get(entityURI).get(timestamp)+1);
+            }
+            matches.add(literalsInMatch);
+        }
+        matches.sort(new Comparator<HashSet<ConstantLiteral>>() {
+            @Override
+            public int compare(HashSet<ConstantLiteral> o1, HashSet<ConstantLiteral> o2) {
+                return o1.size() - o2.size();
+            }
+        });
+        return numOfMatches;
+    }
+
+    public static String extractAttributes(PatternTreeNode patternTreeNode, String patternVertexType, HashSet<ConstantLiteral> match, Vertex currentMatchedVertex, Map<String, Integer> interestingnessMap) {
+        String entityURI = null;
+        String centerVertexType = patternTreeNode.getPattern().getCenterVertexType();
+        Set<String> matchedVertexTypes = currentMatchedVertex.getTypes();
+        for (ConstantLiteral activeAttribute : getActiveAttributesInPattern(patternTreeNode.getGraph().vertexSet(),true)) {
+            if (!matchedVertexTypes.contains(activeAttribute.getVertexType())) continue;
+            for (String matchedAttrName : currentMatchedVertex.getAllAttributesNames()) {
+                if (matchedVertexTypes.contains(centerVertexType) && matchedAttrName.equals("uri")) {
+                    entityURI = currentMatchedVertex.getAttributeValueByName(matchedAttrName);
+                }
+                if (!activeAttribute.getAttrName().equals(matchedAttrName)) continue;
+                String matchedAttrValue = currentMatchedVertex.getAttributeValueByName(matchedAttrName);
+                ConstantLiteral xLiteral = new ConstantLiteral(patternVertexType, matchedAttrName, matchedAttrValue);
+                interestingnessMap.merge(patternVertexType, 1, Integer::sum);
+                match.add(xLiteral);
+            }
+        }
+        return entityURI;
+    }
+
+    public static HashSet<ConstantLiteral> getActiveAttributesInPattern(Set<Vertex> vertexSet, boolean considerURI) {
+        HashMap<String, HashSet<String>> patternVerticesAttributes = new HashMap<>();
+        for (Vertex vertex : vertexSet) {
+            for (String vertexType : vertex.getTypes()) {
+                patternVerticesAttributes.put(vertexType, new HashSet<>());
+                Set<String> attrNameSet = Util.getVertexTypesToActiveAttributesMap().get(vertexType);
+                for (String attrName : attrNameSet) {
+                    patternVerticesAttributes.get(vertexType).add(attrName);
+                }
+            }
+        }
+        HashSet<ConstantLiteral> literals = new HashSet<>();
+        for (String vertexType : patternVerticesAttributes.keySet()) {
+            if (considerURI) literals.add(new ConstantLiteral(vertexType,"uri",null));
+            for (String attrName : patternVerticesAttributes.get(vertexType)) {
+                ConstantLiteral literal = new ConstantLiteral(vertexType, attrName, null);
+                literals.add(literal);
+            }
+        }
+        return literals;
     }
 
     //endregion

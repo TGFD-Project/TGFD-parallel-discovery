@@ -1,6 +1,9 @@
 package Infra;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ConstantLiteral extends Literal implements Serializable {
 
@@ -22,6 +25,21 @@ public class ConstantLiteral extends Literal implements Serializable {
 
     public String getVertexType() {
         return vertexType;
+    }
+
+    public static Set<String> getSignature(Set<ConstantLiteral> literals)
+    {
+        Set<String> collect = literals.stream()
+                .map(X -> X.getAttrName() + X.getAttrValue() + X.getVertexType())
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        return collect;
+    }
+
+    public static String getSignature(ConstantLiteral literals)
+    {
+        return literals.getAttrName() + literals.getAttrValue() + literals.getVertexType();
     }
 
     @Override

@@ -22,6 +22,9 @@ public class EntityDiscovery {
         String yAttrName = attributes.getRhs().getAttrName();
         Set<ConstantLiteral> xAttributes = attributes.getLhs();
         Map<Set<ConstantLiteral>, Map<ConstantLiteral, List<Integer>>> entitiesWithRHSvalues = new HashMap<>();
+        Map<Set<String>, Map<String, List<Integer>>> entitiesWithRHSvalues_Shit = new HashMap<>();
+        Map<Set<String>, Set<ConstantLiteral>> reverseMap_entity = new HashMap<>();
+        Map<String, HashMap<Set<String> ,ConstantLiteral>> reverseMap_rhs = new HashMap<>();
 
         // TO-DO: Add support for schemaless graphs
         for (int timestamp = 0; timestamp < matchesPerTimestamps.size(); timestamp++) {
@@ -32,6 +35,8 @@ public class EntityDiscovery {
                 for(Set<ConstantLiteral> match : matchesInOneTimeStamp) {
                     if (match.size() < attributes.size())
                         continue;
+                    //TODO: Fix this shit
+
                     Set<ConstantLiteral> entity = new HashSet<>();
                     ConstantLiteral rhs = null;
                     for (ConstantLiteral literalInMatch : match) {
@@ -47,13 +52,34 @@ public class EntityDiscovery {
                     if (entity.size() < xAttributes.size() || rhs == null)
                         continue;
 
-                    if (!entitiesWithRHSvalues.containsKey(entity))
+                    Set<String> signature = ConstantLiteral.getSignature(entity);
+                    if (!entitiesWithRHSvalues_Shit.containsKey(signature))
+                    {
                         entitiesWithRHSvalues.put(entity, new HashMap<>());
+                        entitiesWithRHSvalues_Shit.put(signature, new HashMap<>());
+                        reverseMap_entity.put(signature, entity);
+                    }
 
-                    if (!entitiesWithRHSvalues.get(entity).containsKey(rhs))
-                        entitiesWithRHSvalues.get(entity).put(rhs, Util.createEmptyArrayListOfSize(matchesPerTimestamps.size()));
+                    String rhsSignature = ConstantLiteral.getSignature(rhs);
+                    Set<ConstantLiteral> actualEntityInHashMap = reverseMap_entity.get(signature);
 
-                    entitiesWithRHSvalues.get(entity).get(rhs).set(timestamp, entitiesWithRHSvalues.get(entity).get(rhs).get(timestamp)+1);
+                    if (!entitiesWithRHSvalues_Shit.get(signature).containsKey(rhsSignature))
+                    {
+                        entitiesWithRHSvalues_Shit.get(signature).put(rhsSignature, null);
+                        entitiesWithRHSvalues.get(actualEntityInHashMap).put(rhs, Util.createEmptyArrayListOfSize(matchesPerTimestamps.size()));
+                        if(!reverseMap_rhs.containsKey(rhsSignature))
+                            reverseMap_rhs.put(rhsSignature, new HashMap<>());
+                        reverseMap_rhs.get(rhsSignature).put(signature,rhs);
+                    }
+
+                    ConstantLiteral actualRhsInHashMap = reverseMap_rhs.get(rhsSignature).get(signature);
+                    try {
+                        entitiesWithRHSvalues.get(actualEntityInHashMap).get(actualRhsInHashMap).set(timestamp, entitiesWithRHSvalues.get(actualEntityInHashMap).get(actualRhsInHashMap).get(timestamp) + 1);
+                    }
+                    catch (Exception e)
+                    {
+                        System.out.println(e.getMessage());
+                    }
                     numOfMatches++;
                 }
             }

@@ -172,8 +172,8 @@ public class Worker {
         }
         consumer.close();
 
-        runner.generateJobs();
-        runner.runTheFirstSnapshot();
+        runner.generateJobs(singlePatternTreeNodes);
+        runner.runTheFirstSnapshot(singlePatternTreeNodes);
 
         Producer messageProducer=new Producer();
         messageProducer.connect();

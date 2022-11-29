@@ -1,10 +1,7 @@
 package Discovery;
 
 import ICs.TGFD;
-import Infra.DataVertex;
-import Infra.RelationshipEdge;
-import Infra.VF2DataGraph;
-import Infra.Vertex;
+import Infra.*;
 import org.jgrapht.Graph;
 
 import java.util.ArrayList;
@@ -17,13 +14,15 @@ public class Job {
     private int fragmentID;        //a->b and b->c -> start off with 50 joblets, then extract the subgraph within diameter 2 and then do the matching
     private ArrayList<RelationshipEdge> edges;
     private VF2DataGraph subgraph;
+    private PatternTreeNode patternTreeNode;
 
-    public Job(int id, DataVertex centerNode, int diameter, int fragmentID)
+    public Job(int id, DataVertex centerNode, int diameter, int fragmentID, PatternTreeNode patternTreeNode)
     {
         this.id=id;
         this.diameter=diameter;
         this.centerNode=centerNode;
         this.fragmentID=fragmentID;
+        this.patternTreeNode=patternTreeNode;
     }
 
     public void setEdges(ArrayList<RelationshipEdge> edges) {
@@ -63,4 +62,7 @@ public class Job {
         return fragmentID;
     }
 
+    public PatternTreeNode getPatternTreeNode() {
+        return patternTreeNode;
+    }
 }
