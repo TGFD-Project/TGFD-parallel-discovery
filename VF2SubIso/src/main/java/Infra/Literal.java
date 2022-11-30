@@ -1,6 +1,8 @@
 package Infra;
 
-public abstract class Literal {
+import java.io.Serializable;
+
+public abstract class Literal implements Serializable {
 
     public enum LiteralType
     {
