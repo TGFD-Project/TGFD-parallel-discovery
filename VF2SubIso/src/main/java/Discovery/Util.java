@@ -14,10 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.ZoneId;
@@ -599,7 +596,7 @@ public class Util {
         });
         System.out.println("Printing TGFDs to file for k = " + currentVSpawnLevel);
         try {
-            PrintStream printStream = new PrintStream(experimentName + "-tgfds" + experimentStartTimeAndDateStamp + ".txt");
+            PrintStream printStream = new PrintStream(new FileOutputStream(experimentName + "-tgfds" + experimentStartTimeAndDateStamp + ".txt", true));
             printStream.println("k = " + currentVSpawnLevel);
             printStream.println("# of TGFDs generated = " + tgfds.size());
             for (TGFD tgfd : tgfds) {
