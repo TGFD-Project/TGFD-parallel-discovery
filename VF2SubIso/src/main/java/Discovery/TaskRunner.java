@@ -1,168 +1,354 @@
 package Discovery;
 
-import ChangeExploration.Change;
 import ICs.TGFD;
-import IncrementalRunner.IncUpdates;
-import IncrementalRunner.IncrementalChange;
 import Infra.*;
 import Loader.*;
 import Util.Config;
-import VF2BasedWorkload.Joblet;
 import VF2Runner.VF2SubgraphIsomorphism;
 import org.jgrapht.Graph;
-import org.jgrapht.GraphMapping;
 import org.jgrapht.alg.isomorphism.VF2AbstractIsomorphismInspector;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TaskRunner {
 
-    private GraphLoader loader=null;
+    private GraphLoader []loaders;
     private long wallClockTime=0;
-    private HashMap<Integer, Job> assignedJobs;
+    private HashMap<Integer, HashMap<Integer, Job>> assignedJobsBySnapshot;
     private String jobsInRawString;
 
-    private List<Set<Set<ConstantLiteral>>> matchesPerTimestamps = new ArrayList<>();
+    private HashMap<PatternTreeNode, List<Set<Set<ConstantLiteral>>>> matchesPerTimestampsByPTN = new HashMap<>();
+    private HashMap<PatternTreeNode, Map<String, List<Integer>>> entityURIsByPTN = new HashMap<>();
+
+    private VSpawn vSpawn;
+
+    private int jobIDForNewJobs = 9000000;
+
 
 
 //    private HashMap <String, MatchCollection> matchCollectionHashMap;
 
-    public TaskRunner()
+    public TaskRunner(int numberOfSnapshots)
     {
-        System.out.println("Incremental algorithm for the "+ Config.datasetName +" dataset from taskRunner");
-        assignedJobs=new HashMap<>();
+        System.out.println("Task Runner for the "+ Config.datasetName +" dataset");
+        assignedJobsBySnapshot=new HashMap<>();
+        loaders = new GraphLoader[numberOfSnapshots];
+        IntStream.range(0, numberOfSnapshots).forEach(i -> loaders[i] = null);
+        IntStream.range(0, numberOfSnapshots).forEach(i -> assignedJobsBySnapshot.put(i, new HashMap<>()));
+        vSpawn = new VSpawn();
     }
 
-    public void load()
+    public void load(int snapShotID)
     {
-        long startTime=System.currentTimeMillis();
+        int snapShotIndex = snapShotID-1;
+        if(loaders[snapShotID] == null)
+        {
+            long startTime=System.currentTimeMillis();
 
-        //Load the first timestamp
-        System.out.println("===========Snapshot 1 (" + Config.getTimestamps().get(1) + ")===========");
+            //Load the first timestamp
+            System.out.println("===========Snapshot "+snapShotID+" (" + Config.getTimestamps().get(snapShotID) + ")===========");
 
-        if(Config.datasetName== Config.dataset.dbpedia)
-            loader = new DBPediaLoader(new ArrayList<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
-        else if(Config.datasetName == Config.dataset.synthetic)
-            loader = new SyntheticLoader(new ArrayList<>(), Config.getFirstDataFilePath());
-        else if(Config.datasetName == Config.dataset.pdd)
-            loader = new PDDLoader(new ArrayList<>(), Config.getFirstDataFilePath());
-        else if(Config.datasetName == Config.dataset.imdb) // default is imdb
-            loader = new IMDBLoader(new ArrayList<>(), Config.getFirstDataFilePath());
+            if(Config.datasetName== Config.dataset.dbpedia)
+                // TODO: needs to be fixed
+                loaders[snapShotIndex] = new DBPediaLoader(new ArrayList<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+            else if(Config.datasetName == Config.dataset.synthetic)
+                loaders[snapShotIndex] = new SyntheticLoader(new ArrayList<>(), Config.getFirstDataFilePath());
+            else if(Config.datasetName == Config.dataset.pdd)
+                loaders[snapShotIndex] = new PDDLoader(new ArrayList<>(), Config.getFirstDataFilePath());
+            else if(Config.datasetName == Config.dataset.imdb) // default is imdb
+                loaders[snapShotIndex] = new IMDBLoader(new ArrayList<>(), Config.getFirstDataFilePath());
 
-        printWithTime("Load graph 1 (" + Config.getTimestamps().get(1) + ")", System.currentTimeMillis()-startTime);
-        wallClockTime+=System.currentTimeMillis()-startTime;
+            printWithTime("Load graph "+snapShotID+" (" + Config.getTimestamps().get(snapShotID) + ")", System.currentTimeMillis()-startTime);
+            wallClockTime+=System.currentTimeMillis()-startTime;
+        }
+        else
+        {
+            System.out.println("Snapshot "+snapShotID+" is already loaded.");
+        }
     }
 
     public void setJobsInRawString(String jobsInRawString) {
         this.jobsInRawString = jobsInRawString;
     }
 
-    public void generateJobs(List<PatternTreeNode> singlePatternTreeNodes)
+    public void generateJobs(List<PatternTreeNode> patternTreeNodes)
     {
+        matchesPerTimestampsByPTN = new HashMap<>();
+        for (PatternTreeNode ptn:patternTreeNodes) {
+            matchesPerTimestampsByPTN.put(ptn,new ArrayList<>());
+            for (int timestamp = 0; timestamp < Util.numOfSnapshots; timestamp++) {
+                matchesPerTimestampsByPTN.get(ptn).add(new HashSet<>());
+            }
+            entityURIsByPTN.put(ptn, new HashMap<>());
+        }
+
+        HashMap<String, PatternTreeNode> typeToPattern = patternTreeNodes
+                .stream()
+                .collect(Collectors
+                        .toMap(ptn -> ptn.getGraph().vertexSet().iterator().next().getTypes().iterator().next(),
+                                ptn -> ptn,
+                                (a, b) -> b,
+                                HashMap::new));
         if(jobsInRawString!=null)
         {
             String []temp=jobsInRawString.split("\n");
             for (int i=1;i<temp.length;i++)
             {
                 String []arr=temp[i].split("#");
-                if(arr.length==3)
+                if(arr.length==4)
                 {
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loader.getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, singlePatternTreeNodes.get(0));
-                    assignedJobs.put(job.getId(), job);
+                    // A job is in the form of the following
+                    // id # CenterNodeVertexID # diameter # FragmentID # Type
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[3]));
+                    assignedJobsBySnapshot.get(0).put(job.getId(), job);
                 }
             }
         }
     }
 
-    public void runTheFirstSnapshot(List<PatternTreeNode> singlePatternTreeNodes)
+    public void appendNewJobs(List<PatternTreeNode> patternTreeNodes, String newJobsInRawString, int superStep)
     {
-        if(loader==null)
+        int superStepIndex = superStep-1;
+        HashMap<String, PatternTreeNode> typeToPattern = patternTreeNodes
+                .stream()
+                .collect(Collectors
+                        .toMap(ptn -> ptn.getGraph().vertexSet().iterator().next().getTypes().iterator().next(),
+                                ptn -> ptn,
+                                (a, b) -> b,
+                                HashMap::new));
+        if(newJobsInRawString!=null)
+        {
+            String []temp=newJobsInRawString.split("\n");
+            for (int i=1;i<temp.length;i++)
+            {
+                String []arr=temp[i].split("#");
+                if(arr.length==4)
+                {
+                    // A job is in the form of the following
+                    // id # CenterNodeVertexID # diameter # FragmentID # Type
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[3]));
+                    assignedJobsBySnapshot.get(superStepIndex).put(job.getId(), job);
+                }
+            }
+        }
+    }
+
+    public void vSpawn()
+    {
+        while (Util.currentVSpawnLevel <= Util.k) {
+
+            PatternTreeNode newPattern = null;
+            VSpawn.VSpawnedPatterns vSpawnedPatterns = null;
+            while (newPattern == null && Util.currentVSpawnLevel <= Util.k) {
+                vSpawnedPatterns = vSpawn.perform(false);
+                newPattern = vSpawnedPatterns.getNewPattern();
+            }
+
+            if (Util.currentVSpawnLevel > Util.k)
+                break;
+
+            if (vSpawnedPatterns.getNewPattern() == null)
+                throw new NullPointerException("patternTreeNode == null");
+
+            matchesPerTimestampsByPTN.put(newPattern,new ArrayList<>());
+            for (int timestamp = 0; timestamp < Util.numOfSnapshots; timestamp++) {
+                matchesPerTimestampsByPTN.get(newPattern).add(new HashSet<>());
+            }
+            entityURIsByPTN.put(newPattern, new HashMap<>());
+
+            HashMap<Integer, ArrayList<Job>> newJobsList = new HashMap<>();
+
+            for (int index : assignedJobsBySnapshot.keySet()) {
+                newJobsList.put(index, new ArrayList<>());
+                for (Job job : assignedJobsBySnapshot.get(index).values()) {
+                    if(job.getPatternTreeNode().equals(vSpawnedPatterns.getOldPattern()))
+                    {
+                        Job newJob=new Job(jobIDForNewJobs++,job.getCenterNode(),1,0, newPattern);
+                        assignedJobsBySnapshot.get(index).put(newJob.getId(), newJob);
+                        newJobsList.get(index).add(newJob);
+                    }
+                }
+            }
+
+            long matchingTime = System.currentTimeMillis();
+            for (int superstep =1; superstep<=Config.supersteps;superstep++)
+            {
+                runSnapshot(superstep, newJobsList);
+            }
+
+            matchingTime = System.currentTimeMillis() - matchingTime;
+            Util.printWithTime("Pattern matching", (matchingTime));
+            Util.addToTotalMatchingTime(matchingTime);
+
+            calculateSupport(newPattern);
+
+            if (Util.doesNotSatisfyTheta(newPattern)) {
+                System.out.println("Mark as pruned. Real pattern support too low for pattern " + newPattern.getPattern());
+                if (Util.hasSupportPruning)
+                    newPattern.setIsPruned();
+                continue;
+            }
+
+            if (Util.skipK1 && Util.currentVSpawnLevel == 1)
+                continue;
+
+            final long hSpawnStartTime = System.currentTimeMillis();
+            HSpawn hspawn = new HSpawn(newPattern, matchesPerTimestampsByPTN.get(newPattern));
+            ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+            Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
+            Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(tgfds);
+        }
+    }
+
+    public void runSnapshot(int snapShotID, HashMap<Integer, ArrayList<Job>> newJobsList)
+    {
+        int snapShotIndex = snapShotID-1;
+        if(loaders[snapShotIndex]==null)
         {
             System.out.println("Graph is not loaded yet");
             return;
         }
-        StringBuilder msg=new StringBuilder();
 
-        long startTime, functionWallClockTime=System.currentTimeMillis();
-        LocalDate currentSnapshotDate= Config.getTimestamps().get(1);
+        LocalDate currentSnapshotDate= Config.getTimestamps().get(snapShotID);
 
-        //Create the match collection for all the TGFDs in the list
-//        matchCollectionHashMap=new HashMap <>();
-//        for (PatternTreeNode ptn:singlePatternTreeNodes) {
-//            matchCollectionHashMap.put(ptn.getName(),new MatchCollection(ptn.getPattern(),ptn.getDependency(),tgfd.getDelta().getGranularity()));
-//        }
-
-        // Now, we need to find the matches for the first snapshot.
         System.out.println("Retrieving matches for all the joblets.");
         VF2SubgraphIsomorphism VF2 = new VF2SubgraphIsomorphism();
 
-        Map<String, List<Integer>> entityURIs = new HashMap<>();
-
-        startTime=System.currentTimeMillis();
-        for (Job job:assignedJobs.values()) {
-            Graph<Vertex, RelationshipEdge> subgraph = loader.getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),new TGFD()); // Fix
-            job.setSubgraph(subgraph);
-            ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
-            int numOfMatchesInTimestamp = 0;
-            VF2AbstractIsomorphismInspector<Vertex, RelationshipEdge> results = new VF2SubgraphIsomorphism().execute2(subgraph, job.getPatternTreeNode().getPattern(), false);
-            if (results.isomorphismExists()) {
-                numOfMatchesInTimestamp = Match.extractMatches(results.getMappings(), matches, job.getPatternTreeNode(), entityURIs, 2016);
+        long startTime=System.currentTimeMillis();
+        for (int index=0; index<=snapShotIndex; index++)
+        {
+            for (Job job: newJobsList.get(index)) {
+                Set<String> validTypes = new HashSet<>();
+                for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
+                    validTypes.addAll(v.getTypes());
+                }
+                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes); // Fix
+                job.setSubgraph(subgraph);
+                ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
+                int numOfMatchesInTimestamp = 0;
+                VF2AbstractIsomorphismInspector<Vertex, RelationshipEdge> results = VF2.execute2(subgraph, job.getPatternTreeNode().getPattern(), false);
+                if (results.isomorphismExists()) {
+                    numOfMatchesInTimestamp = Match.extractMatches(results.getMappings(), matches, job.getPatternTreeNode(), entityURIsByPTN.get(job.getPatternTreeNode()), snapShotIndex);
+                }
+                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
+                System.out.println("Number of matches found that contain active attributes: " + matches.size());
+                matchesPerTimestampsByPTN.get(job.getPatternTreeNode()).get(snapShotIndex).addAll(matches);
             }
-            matchesPerTimestamps.get(2016).addAll(matches);
         }
-        printWithTime("Match retrieval", System.currentTimeMillis()-startTime);
+
+        final long matchingEndTime = System.currentTimeMillis() - startTime;
+        Util.printWithTime("matchingTime for Snapshot "+snapShotID, matchingEndTime);
+        Util.addToTotalMatchingTime(matchingEndTime);
     }
 
-    public void runTheNextTimestamp(List<Change> changes, int superstep)
+    public void runSnapshot(int snapShotID)
     {
-        //Load the change files
-        System.out.println("===========Snapshot "+superstep+" (" + Config.getTimestamps().get(superstep) + ")===========");
+        int snapShotIndex = snapShotID-1;
+        if(loaders[snapShotIndex]==null)
+        {
+            System.out.println("Graph is not loaded yet");
+            return;
+        }
+
+        LocalDate currentSnapshotDate= Config.getTimestamps().get(snapShotID);
+
+        System.out.println("Retrieving matches for all the joblets.");
+        VF2SubgraphIsomorphism VF2 = new VF2SubgraphIsomorphism();
 
         long startTime=System.currentTimeMillis();
-        LocalDate currentSnapshotDate= Config.getTimestamps().get(superstep);
-        System.out.println("Total number of changes: " + changes.size());
+        for (int index=0; index<=snapShotIndex; index++)
+        {
+            for (Job job: assignedJobsBySnapshot.get(index).values()) {
+                Set<String> validTypes = new HashSet<>();
+                for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
+                    validTypes.addAll(v.getTypes());
+                }
+                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes); // Fix
+                job.setSubgraph(subgraph);
+                ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
+                int numOfMatchesInTimestamp = 0;
+                VF2AbstractIsomorphismInspector<Vertex, RelationshipEdge> results = VF2.execute2(subgraph, job.getPatternTreeNode().getPattern(), false);
+                if (results.isomorphismExists()) {
+                    numOfMatchesInTimestamp = Match.extractMatches(results.getMappings(), matches, job.getPatternTreeNode(), entityURIsByPTN.get(job.getPatternTreeNode()), snapShotIndex);
+                }
+                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
+                System.out.println("Number of matches found that contain active attributes: " + matches.size());
+                matchesPerTimestampsByPTN.get(job.getPatternTreeNode()).get(snapShotIndex).addAll(matches);
+            }
+        }
 
-        System.out.println("Updating the graph");
-
-        HashMap<String, ArrayList <String>> newMatchesSignaturesByTGFD=new HashMap <>();
-        HashMap<String,ArrayList<String>> removedMatchesSignaturesByTGFD=new HashMap <>();
-        HashMap<String,TGFD> tgfdsByName=new HashMap <>();
-//        for (TGFD tgfd:tgfds) {
-//            newMatchesSignaturesByTGFD.put(tgfd.getName(), new ArrayList <>());
-//            removedMatchesSignaturesByTGFD.put(tgfd.getName(), new ArrayList <>());
-//            tgfdsByName.put(tgfd.getName(),tgfd);
-//        }
-//
-//        for (Change change:changes) {
-//            for (int jobletID:change.getJobletIDs()) {
-//                if(assignedJoblets.containsKey(jobletID))
-//                {
-//                    IncUpdates incUpdatesOnDBpedia=new IncUpdates(assignedJoblets.get(jobletID).getSubgraph(),tgfds);
-//                    HashMap<String, IncrementalChange> incrementalChangeHashMap=incUpdatesOnDBpedia.updateGraph(change,tgfdsByName);
-//                    if(incrementalChangeHashMap==null)
-//                        continue;
-//                    for (String tgfdName:incrementalChangeHashMap.keySet()) {
-//                        newMatchesSignaturesByTGFD.get(tgfdName).addAll(incrementalChangeHashMap.get(tgfdName).getNewMatches().keySet());
-//                        removedMatchesSignaturesByTGFD.get(tgfdName).addAll(incrementalChangeHashMap.get(tgfdName).getRemovedMatchesSignatures());
-//                        matchCollectionHashMap.get(tgfdName).addMatches(currentSnapshotDate,incrementalChangeHashMap.get(tgfdName).getNewMatches());
-//                    }
-//                }
-//            }
-//        }
-//        for (TGFD tgfd:tgfds) {
-//            matchCollectionHashMap.get(tgfd.getName())
-//                    .addTimestamp(currentSnapshotDate, newMatchesSignaturesByTGFD.get(tgfd.getName()),removedMatchesSignaturesByTGFD.get(tgfd.getName()));
-//
-//            System.out.println("New matches ("+tgfd.getName()+"): " +
-//                    newMatchesSignaturesByTGFD.get(tgfd.getName()).size() + " ** " + removedMatchesSignaturesByTGFD.get(tgfd.getName()).size());
-//        }
-        printWithTime("Update and retrieve matches ", System.currentTimeMillis()-startTime);
+        final long matchingEndTime = System.currentTimeMillis() - startTime;
+        Util.printWithTime("matchingTime for Snapshot "+snapShotID, matchingEndTime);
+        Util.addToTotalMatchingTime(matchingEndTime);
     }
 
-    public GraphLoader getLoader() {
-        return loader;
+    public void calculateSupport()
+    {
+        for (PatternTreeNode ptn: matchesPerTimestampsByPTN.keySet()) {
+            int numberOfMatchesFound = 0;
+            for (Set<Set<ConstantLiteral>> matchesInOneTimestamp : matchesPerTimestampsByPTN.get(ptn)) {
+                numberOfMatchesFound += matchesInOneTimestamp.size();
+            }
+            System.out.println("Total number of matches found across all snapshots:" + numberOfMatchesFound);
+
+            for (Map.Entry<String, List<Integer>> entry: entityURIsByPTN.get(ptn).entrySet()) {
+                System.out.println(entry);
+            }
+            double S = Util.vertexHistogram.get(ptn.getPattern().getCenterVertexType());
+            double patternSupport = Util.calculatePatternSupport(entityURIsByPTN.get(ptn), S, Util.T);
+            Util.patternSupportsListForThisSnapshot.add(patternSupport);
+            ptn.setPatternSupport(patternSupport);
+        }
+    }
+
+    public void calculateSupport(PatternTreeNode newPattern)
+    {
+        int numberOfMatchesFound = 0;
+        for (Set<Set<ConstantLiteral>> matchesInOneTimestamp : matchesPerTimestampsByPTN.get(newPattern)) {
+            numberOfMatchesFound += matchesInOneTimestamp.size();
+        }
+        System.out.println("Total number of matches found across all snapshots:" + numberOfMatchesFound);
+
+        for (Map.Entry<String, List<Integer>> entry: entityURIsByPTN.get(newPattern).entrySet()) {
+            System.out.println(entry);
+        }
+        double S = Util.vertexHistogram.get(newPattern.getPattern().getCenterVertexType());
+        double patternSupport = Util.calculatePatternSupport(entityURIsByPTN.get(newPattern), S, Util.T);
+        Util.patternSupportsListForThisSnapshot.add(patternSupport);
+        newPattern.setPatternSupport(patternSupport);
+    }
+
+    public void vSpawnInit() {
+        Util.patternTree = new PatternTree();
+        Util.patternTree.addLevel();
+
+        System.out.println("VSpawn Level 0");
+
+        for (PatternTreeNode ptn: matchesPerTimestampsByPTN.keySet()) {
+            Util.patternTree.createNodeAtLevel(Util.currentVSpawnLevel, ptn.getPattern());
+
+            if (Util.doesNotSatisfyTheta(ptn))
+                ptn.setIsPruned();
+            else if (Util.generatek0Tgfds) {
+                final long hSpawnStartTime = System.currentTimeMillis();
+                HSpawn hspawn = new HSpawn(ptn, matchesPerTimestampsByPTN.get(ptn));
+                ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+                Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
+                Util.discoveredTgfds.get(0).addAll(tgfds);
+            }
+        }
+        System.out.println("GenTree Level " + Util.currentVSpawnLevel + " size: " + Util.patternTree.getLevel(Util.currentVSpawnLevel).size());
+        for (PatternTreeNode node : Util.patternTree.getLevel(Util.currentVSpawnLevel)) {
+            System.out.println("Pattern: " + node.getPattern());
+        }
+    }
+
+    public GraphLoader[] getLoaders() {
+        return loaders;
     }
 
 

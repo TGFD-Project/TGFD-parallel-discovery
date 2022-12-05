@@ -1,6 +1,5 @@
 package Discovery;
 
-import ICs.TGFD;
 import Infra.*;
 import org.jgrapht.Graph;
 
@@ -22,7 +21,7 @@ public class Job {
         this.diameter=diameter;
         this.centerNode=centerNode;
         this.fragmentID=fragmentID;
-        this.patternTreeNode=patternTreeNode;
+        this.patternTreeNode = patternTreeNode;
     }
 
     public void setEdges(ArrayList<RelationshipEdge> edges) {

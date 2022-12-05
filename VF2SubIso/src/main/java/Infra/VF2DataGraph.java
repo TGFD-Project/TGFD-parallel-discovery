@@ -465,6 +465,71 @@ public class VF2DataGraph implements Serializable {
         return subgraph;
     }
 
+    public Graph<Vertex, RelationshipEdge> getSubGraphWithinDiameter(DataVertex center, int diameter, Set <String> validTypes)
+    {
+        Graph<Vertex, RelationshipEdge> subgraph = new DefaultDirectedGraph<>(RelationshipEdge.class);
+
+        List<Vertex> withinDiameter=new ArrayList<>();
+        // Define a HashMap to store visited vertices
+        HashMap<String,Integer> visited=new HashMap<>();
+
+        // Create a queue for BFS
+        LinkedList<DataVertex> queue = new LinkedList<>();
+
+        // Mark the current node as visited with distance 0 and then enqueue it
+        visited.put(center.getVertexURI(),0);
+        queue.add(center);
+        // Store the center as the node within the diameter
+        withinDiameter.add(center);
+        //temp variables
+        DataVertex v,w;
+
+        while (queue.size() != 0)
+        {
+            // Dequeue a vertex from queue and get its distance
+            v = queue.poll();
+            int distance=visited.get(v.getVertexURI());
+
+            // Outgoing edges
+            for (RelationshipEdge edge : graph.outgoingEdgesOf(v)) {
+                w = (DataVertex) edge.getTarget();
+                // Check if the vertex is not visited
+                // Check if the vertex is within the diameter
+                // Check if the vertex type is a validType
+                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI())) {
+                    //Enqueue the vertex and add it to the visited set
+                    visited.put(w.getVertexURI(), distance + 1);
+                    queue.add(w);
+                    withinDiameter.add(w);
+                }
+            }
+            // Incoming edges
+            for (RelationshipEdge edge : graph.incomingEdgesOf(v)) {
+                w = (DataVertex) edge.getSource();
+                // Check if the vertex is not visited
+                // Check if the vertex is within the diameter
+                // Check if the vertex type is a validType
+                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI())) {
+                    //Enqueue the vertex and add it to the visited set
+                    visited.put(w.getVertexURI(), distance + 1);
+                    queue.add(w);
+                    withinDiameter.add(w);
+                }
+            }
+        }
+        for (Vertex vertex:withinDiameter) {
+            subgraph.addVertex(vertex);
+        }
+        for (Vertex source:withinDiameter) {
+            for (RelationshipEdge e:graph.outgoingEdgesOf(source)) {
+                DataVertex target=(DataVertex)e.getTarget();
+                if(visited.containsKey(target.getVertexURI()))
+                    subgraph.addEdge(e.getSource(),e.getTarget(),e);
+            }
+        }
+        return subgraph;
+    }
+
     public ArrayList<RelationshipEdge> getEdgesWithinDiameter(DataVertex center, int diameter)
     {
         ArrayList<RelationshipEdge> edges = new ArrayList<>();

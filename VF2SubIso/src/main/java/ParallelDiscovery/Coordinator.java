@@ -111,7 +111,7 @@ public class Coordinator {
         this.workersResultsChecker.set(false);
     }
 
-    public void assignJoblets()
+    public void assignJobs()
     {
         Thread jobAssignerThread = new Thread(new JobletAssigner());
         jobAssignerThread.setDaemon(false);

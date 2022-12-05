@@ -29,7 +29,7 @@ public class HDFSStorage {
         }
     }
 
-    public static boolean upload(String directoryName, String fileName, Object obj, boolean removeTemporaryFile) throws IOException
+    public static boolean upload(String directoryName, String fileName, Object obj, boolean removeTemporaryFile)
     {
         boolean done = false;
         String tempFileName="./"+fileName+"_"+Util.Config.generateRandomString(4)+".ser";
@@ -109,30 +109,36 @@ public class HDFSStorage {
         return null;
     }
 
-    public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) throws IOException {
+    public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) {
 
-        Configuration configuration = new Configuration();
-        configuration.set(Config.HDFSName, Config.HDFSAddress);
-        FileSystem fileSystem = FileSystem.get(configuration);
-        //Create a path
-        Path hdfsReadPath = new Path(directoryName+ fileName);
-        //Init input stream
-        FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
-
-        //Classical input stream usage
-        //String out= IOUtils.toString(inputStream, "UTF-8");
-
-        // Buffered input stream
         StringBuilder sb=new StringBuilder();
-        BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        String line;
-        while ((line=bufferedReader.readLine())!=null){
-            sb.append(line);
-        }
-        inputStream.close();
-        fileSystem.close();
+        try
+        {
+            Configuration configuration = new Configuration();
+            configuration.set(Config.HDFSName, Config.HDFSAddress);
+            FileSystem fileSystem = FileSystem.get(configuration);
+            //Create a path
+            Path hdfsReadPath = new Path(directoryName+ fileName);
+            //Init input stream
+            FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
 
+            //Classical input stream usage
+            //String out= IOUtils.toString(inputStream, "UTF-8");
+
+            // Buffered input stream
+            BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            String line;
+            while ((line=bufferedReader.readLine())!=null){
+                sb.append(line);
+            }
+            inputStream.close();
+            fileSystem.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
         return sb;
     }
 

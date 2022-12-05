@@ -136,7 +136,7 @@ public class TGFDDiscovery {
 
 			PatternTreeNode patternTreeNode = null;
 			while (patternTreeNode == null && Util.currentVSpawnLevel <= Util.k)
-				patternTreeNode = vSpawn.perform();
+				patternTreeNode = vSpawn.perform(true).getNewPattern();
 
 			if (Util.currentVSpawnLevel > Util.k)
 				break;
@@ -156,7 +156,7 @@ public class TGFDDiscovery {
 			Util.printWithTime("Pattern matching", (matchingTime));
 			Util.addToTotalMatchingTime(matchingTime);
 
-			if (doesNotSatisfyTheta(patternTreeNode)) {
+			if (Util.doesNotSatisfyTheta(patternTreeNode)) {
 				System.out.println("Mark as pruned. Real pattern support too low for pattern " + patternTreeNode.getPattern());
 				if (Util.hasSupportPruning)
 					patternTreeNode.setIsPruned();
@@ -245,7 +245,7 @@ public class TGFDDiscovery {
 
 			PatternTreeNode patternTreeNode = null;
 			while (patternTreeNode == null && Util.currentVSpawnLevel <= Util.k)
-				patternTreeNode = new VSpawn().perform();
+				patternTreeNode = new VSpawn().perform(true).getNewPattern();
 
 			if (Util.currentVSpawnLevel > Util.k)
 				break;
@@ -268,7 +268,7 @@ public class TGFDDiscovery {
 			Util.printWithTime("Pattern matching", (matchingTime));
 			Util.addToTotalMatchingTime(matchingTime);
 
-			if (tgfdDiscovery.doesNotSatisfyTheta(patternTreeNode)) {
+			if (Util.doesNotSatisfyTheta(patternTreeNode)) {
 				System.out.println("Mark as pruned. Real pattern support too low for pattern " + patternTreeNode.getPattern());
 				if (Util.hasSupportPruning)
 					patternTreeNode.setIsPruned();
@@ -498,7 +498,7 @@ public class TGFDDiscovery {
 				Util.printWithTime("matchingTime", matchingEndTime);
 				Util.addToTotalMatchingTime(matchingEndTime);
 
-				if (doesNotSatisfyTheta(patternTreeNode)) {
+				if (Util.doesNotSatisfyTheta(patternTreeNode)) {
 					patternTreeNode.setIsPruned();
 				}
 			}
@@ -537,7 +537,7 @@ public class TGFDDiscovery {
 				Util.printWithTime("matchingTime", matchingEndTime);
 				Util.addToTotalMatchingTime(matchingEndTime);
 
-				if (doesNotSatisfyTheta(patternTreeNode))
+				if (Util.doesNotSatisfyTheta(patternTreeNode))
 					patternTreeNode.setIsPruned();
 				else {
 					final long hSpawnStartTime = System.currentTimeMillis();
@@ -594,7 +594,7 @@ public class TGFDDiscovery {
 				Util.printWithTime("matchingTime", matchingEndTime);
 				Util.addToTotalMatchingTime(matchingEndTime);
 
-				if (doesNotSatisfyTheta(patternTreeNode)) {
+				if (Util.doesNotSatisfyTheta(patternTreeNode)) {
 					patternTreeNode.setIsPruned();
 				}
 			}
@@ -633,7 +633,7 @@ public class TGFDDiscovery {
 				Util.printWithTime("matchingTime", matchingEndTime);
 				Util.addToTotalMatchingTime(matchingEndTime);
 
-				if (doesNotSatisfyTheta(patternTreeNode))
+				if (Util.doesNotSatisfyTheta(patternTreeNode))
 					patternTreeNode.setIsPruned();
 				else {
 					final long hSpawnStartTime = System.currentTimeMillis();
@@ -649,13 +649,6 @@ public class TGFDDiscovery {
 			System.out.println("Pattern: " + node.getPattern());
 		}
 
-	}
-
-
-	protected boolean doesNotSatisfyTheta(PatternTreeNode patternTreeNode) {
-		if (patternTreeNode.getPatternSupport() == null)
-			throw new IllegalArgumentException("patternTreeNode.getPatternSupport() == null");
-		return patternTreeNode.getPatternSupport() < Util.patternTheta;
 	}
 
 	public List<Set<Set<ConstantLiteral>>> getMatchesForPatternUsingVF2(PatternTreeNode patternTreeNode) {

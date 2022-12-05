@@ -7,15 +7,9 @@ import java.util.Map;
 
 public class VSpawn {
 
+    public VSpawnedPatterns perform(boolean setCenterVertexAutomatically) {
 
-    public VSpawn()
-    {
-
-    }
-
-
-    public PatternTreeNode perform() {
-
+        VSpawnedPatterns ret = new VSpawnedPatterns();
         long vSpawnTime = System.currentTimeMillis();
 
         if (Util.candidateEdgeIndex > Util.sortedFrequentEdgesHistogram.size()-1) {
@@ -130,6 +124,7 @@ public class VSpawn {
             }
 
             // Create unmarked copy of k-1 pattern
+            ret.setOldPattern(previousLevelNode);
             VF2PatternGraph newPattern = previousLevelNode.getPattern().copy();
             if (targetVertex == null) {
                 targetVertex = new PatternVertex(targetVertexType);
@@ -173,13 +168,15 @@ public class VSpawn {
                 continue;
             }
             if (Util.currentVSpawnLevel == 1) {
-                newPattern.assignOptimalCenterVertex(Util.vertexTypesToAvgInDegreeMap, Util.fastMatching);
+                if (setCenterVertexAutomatically)
+                    newPattern.assignOptimalCenterVertex(Util.vertexTypesToAvgInDegreeMap, Util.fastMatching);
                 patternTreeNode = new PatternTreeNode(newPattern, previousLevelNode, candidateEdgeString);
                 Util.patternTree.getTree().get(Util.currentVSpawnLevel).add(patternTreeNode);
                 Util.patternTree.findSubgraphParents(Util.currentVSpawnLevel-1, patternTreeNode);
                 Util.patternTree.findCenterVertexParent(Util.currentVSpawnLevel-1, patternTreeNode, true);
             } else {
-                newPattern.assignOptimalCenterVertex(Util.vertexTypesToAvgInDegreeMap, Util.fastMatching);
+                if(setCenterVertexAutomatically)
+                    newPattern.assignOptimalCenterVertex(Util.vertexTypesToAvgInDegreeMap, Util.fastMatching);
                 boolean considerAlternativeParents = true;
                 if (Util.fastMatching && Util.currentVSpawnLevel > 2) {
                     if (newPattern.getPatternType() == PatternType.Line) {
@@ -194,14 +191,36 @@ public class VSpawn {
         if (patternTreeNode == null) {
             for (Vertex v : previousLevelNode.getGraph().vertexSet()) {
                 System.out.println("Unmarking all vertices in current pattern for the next candidate edge");
-                ((PatternVertex)v).setMarked(false);
+                v.setMarked(false);
             }
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
         }
         Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-        return patternTreeNode;
+        ret.setNewPattern(patternTreeNode);
+        return ret;
     }
 
+    public class VSpawnedPatterns
+    {
+        private PatternTreeNode oldPattern;
+        private PatternTreeNode newPattern;
+
+        public void setNewPattern(PatternTreeNode newPattern) {
+            this.newPattern = newPattern;
+        }
+
+        public void setOldPattern(PatternTreeNode oldPattern) {
+            this.oldPattern = oldPattern;
+        }
+
+        public PatternTreeNode getNewPattern() {
+            return newPattern;
+        }
+
+        public PatternTreeNode getOldPattern() {
+            return oldPattern;
+        }
+    }
 
 
     private PatternVertex isDuplicateVertex(VF2PatternGraph newPattern, String vertexType) {

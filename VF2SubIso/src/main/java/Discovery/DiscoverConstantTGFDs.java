@@ -15,6 +15,9 @@ public class DiscoverConstantTGFDs {
     private Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>>  entities;
     private Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap;
 
+    private ArrayList<NegativeTGFD> negativeTGFDs = new ArrayList<>();
+    private ArrayList<NoDeltaTGFD> noDeltaTGFDs = new ArrayList<>();
+
     public DiscoverConstantTGFDs (PatternTreeNode patternNode, ConstantLiteral yLiteral, Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>> entities, Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap)
     {
         this.patternNode = patternNode;
@@ -22,6 +25,14 @@ public class DiscoverConstantTGFDs {
         this.entities = entities;
         this.deltaToPairsMap = deltaToPairsMap;
 
+    }
+
+    public ArrayList<NegativeTGFD> getNegativeTGFDs() {
+        return negativeTGFDs;
+    }
+
+    public ArrayList<NoDeltaTGFD> getNoDeltaTGFDs() {
+        return noDeltaTGFDs;
     }
 
     public ArrayList<TGFD> discover()
@@ -70,11 +81,16 @@ public class DiscoverConstantTGFDs {
                 Util.numOfConsistentRHS += 1;
                 List<Integer> timestampCounts = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
                 Util.Pair candidateDelta = getMinMaxPair(timestampCounts);
-                if (candidateDelta == null) continue;
+                if (candidateDelta == null)
+                {
+                    noDeltaTGFDs.add(new NoDeltaTGFD(entityEntry));
+                    continue;
+                }
                 candidateDeltas.add(candidateDelta);
             } else if (rhsAttrValuesTimestampsSortedByFreq.size() > 1) {
                 Util.rhsInconsistencies.add(rhsAttrValuesTimestampsSortedByFreq.size());
                 findCandidateDeltasForMostFreqRHS(rhsAttrValuesTimestampsSortedByFreq, candidateDeltas);
+                negativeTGFDs.add(new NegativeTGFD(entityEntry));
             }
             if (candidateDeltas.size() == 0) {
                 System.out.println("Could not find any deltas for entity: " + entityEntry.getKey());
@@ -159,7 +175,8 @@ public class DiscoverConstantTGFDs {
             // Only output constant TGFDs that satisfy support
             if (candidateTGFDsupport < Util.tgfdTheta) {
                 System.out.println("Could not satisfy TGFD support threshold for entity: " + entityEntry.getKey());
-            } else {
+            }
+            else {
                 System.out.println("Creating new constant TGFD...");
                 TGFD entityTGFD = new TGFD(newPattern, candidateTGFDdelta, newDependency, candidateTGFDsupport, patternNode.getPatternSupport(), "");
                 System.out.println("TGFD: " + entityTGFD);

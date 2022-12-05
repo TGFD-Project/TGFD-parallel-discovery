@@ -799,6 +799,12 @@ public class Util {
                 TimeUnit.MILLISECONDS.toMinutes(runTimeInMS) +  "(min)");
     }
 
+    public static boolean doesNotSatisfyTheta(PatternTreeNode patternTreeNode) {
+        if (patternTreeNode.getPatternSupport() == null)
+            throw new IllegalArgumentException("patternTreeNode.getPatternSupport() == null");
+        return patternTreeNode.getPatternSupport() < Util.patternTheta;
+    }
+
     public static double calculatePatternSupport(Map<String, List<Integer>> entityURIs, double S, int T) {
 //		System.out.println("Calculating pattern support...");
 //		String centerVertexType = patternTreeNode.getPattern().getCenterVertexType();

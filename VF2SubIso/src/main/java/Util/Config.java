@@ -34,21 +34,16 @@ public class Config {
     public static double zeta=-1;
     public static boolean gfd=false;
     public static boolean filterGraph = false;
-
     public static boolean optimizedLoadingBasedOnTGFD=false;
-
     public static boolean optimizedLoadingBasedOnAttributesInTGFDs = false;
-
     public static boolean saveViolations=false;
     public static boolean debug =false;
 
     public static String path = "";
-
     public static String HDFSName = "fs.defaultFS";
-
     public static String HDFSAddress="hdfs://vienna.cas.mcmaster.ca:9000/";
-
     public static String HDFSDirectory = "/dir1/";
+    public static SharedStorage sharedStorage = SharedStorage.HDFS;
 
     public static void parse(String input) throws FileNotFoundException {
         if(input.equals("--help")) {
@@ -216,5 +211,9 @@ public class Config {
     public enum dataset
     {
         pdd, dbpedia, imdb, synthetic
+    }
+
+    public enum SharedStorage {
+        HDFS, S3
     }
 }

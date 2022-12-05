@@ -1,12 +1,15 @@
 import ParalleRunner.MediumCoordinator;
 import ParalleRunner.MediumWorker;
+import ParallelDiscovery.Coordinator;
+import ParallelDiscovery.Worker;
 import Util.Config;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class testParallelDiscovery {
 
-    public static void main(String []args) throws FileNotFoundException {
+    public static void main(String []args) throws IOException {
 
         Config.parse(args[0]);
         if(Config.nodeName.equalsIgnoreCase("coordinator"))
@@ -34,10 +37,10 @@ public class testParallelDiscovery {
             // Call GeneralTGFD function by merging all the received files (Entities and DeltaToPair) [Partially coded]
             // Send feedback to the workers about the results
 
-            MediumCoordinator mediumCoordinator =new MediumCoordinator();
-            mediumCoordinator.start();
-            mediumCoordinator.assignJob(Config.jobs);
-            mediumCoordinator.waitForResults();
+            Coordinator coordinator =new Coordinator(args);
+            coordinator.start();
+            coordinator.assignJobs();
+            coordinator.waitForResults();
         }
         else // Worker
         {
@@ -74,7 +77,7 @@ public class testParallelDiscovery {
 
 
             System.out.println("Worker '"+ Config.nodeName+"' is starting...");
-            MediumWorker worker=new MediumWorker();
+            Worker worker=new Worker();
             worker.start();
         }
     }

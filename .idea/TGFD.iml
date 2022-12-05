@@ -54,7 +54,7 @@
     <orderEntry type="module-library">
       <library name="Maven: jdk.tools:jdk.tools:1.8">
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/jdk1.8.0_321/jre/../lib/tools.jar!/" />
+          <root url="jar:///Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/jre/../lib/tools.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
