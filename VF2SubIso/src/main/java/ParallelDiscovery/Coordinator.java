@@ -348,23 +348,25 @@ public class Coordinator {
                     Producer messageProducer=new Producer();
                     messageProducer.connect();
                     StringBuilder message;
-                    for (int workerID:estimator[currentSuperstep-1].getJobsByFragmentID().keySet()) {
-                        message= new StringBuilder();
-                        message.append("#newjobs").append("\n");
-                        for (Job job:estimator[currentSuperstep-1].getJobsByFragmentID().get(workerID)) {
-                            // A job is in the form of the following
-                            // id # CenterNodeVertexID # diameter # FragmentID # Type
-                            message.append(job.getId()).append("#")
-                                    .append(job.getCenterNode()).append("#")
-                                    .append(job.getDiameter()).append("#")
-                                    .append(job.getFragmentID()).append("#")
-                                    .append(job.getCenterNode().getTypes().iterator().next())
-                                    .append("\n");
+                    if(currentSuperstep!=1)
+                    {
+                        for (int workerID:estimator[currentSuperstep-1].getJobsByFragmentID().keySet()) {
+                            message= new StringBuilder();
+                            message.append("#newjobs").append("\n");
+                            for (Job job:estimator[currentSuperstep-1].getJobsByFragmentID().get(workerID)) {
+                                // A job is in the form of the following
+                                // id # CenterNodeVertexID # diameter # FragmentID # Type
+                                message.append(job.getId()).append("#")
+                                        .append(job.getCenterNode()).append("#")
+                                        .append(job.getDiameter()).append("#")
+                                        .append(job.getFragmentID()).append("#")
+                                        .append(job.getCenterNode().getTypes().iterator().next())
+                                        .append("\n");
+                            }
+                            messageProducer.send(Config.workers.get(workerID),message.toString());
+                            System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
                         }
-                        messageProducer.send(Config.workers.get(workerID),message.toString());
-                        System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
                     }
-
                     for (int workerID:edgesToBeShippedToOtherWorkers.get(currentSuperstep).keySet()) {
                         message= new StringBuilder();
                         message.append("#datashipper").append("\n");
