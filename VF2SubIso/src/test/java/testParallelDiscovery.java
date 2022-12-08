@@ -3,12 +3,15 @@ import ParallelDiscovery.Worker;
 import Util.Config;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class testParallelDiscovery {
 
     public static void main(String []args) throws IOException {
 
         Config.parse(args[0]);
+        args = Arrays.copyOfRange(args, 1, args.length);
         if(Config.nodeName.equalsIgnoreCase("coordinator"))
         {
 
@@ -35,6 +38,10 @@ public class testParallelDiscovery {
             // Send feedback to the workers about the results
 
             Coordinator coordinator =new Coordinator(args);
+            ArrayList<String> paths = new ArrayList<>();
+            paths.add("Path To the first snapshot of the first worker");
+            paths.add("Path To the first snapshot of the second worker");
+            coordinator.initializeFromSplittedGraph(paths);
             coordinator.start();
             coordinator.assignJobs();
             coordinator.waitForResults();

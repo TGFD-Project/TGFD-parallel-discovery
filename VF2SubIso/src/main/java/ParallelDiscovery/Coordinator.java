@@ -6,8 +6,10 @@ import Discovery.Job;
 import Discovery.TGFDDiscovery;
 import Discovery.Util;
 import ICs.TGFD;
+import Infra.DataVertex;
 import Infra.PatternTreeNode;
 import Infra.SimpleEdge;
+import Infra.Vertex;
 import Loader.GraphLoader;
 import Loader.SimpleDBPediaLoader;
 import Loader.SimpleIMDBLoader;
@@ -19,6 +21,7 @@ import SharedStorage.HDFSStorage;
 import Util.Config;
 import VF2BasedWorkload.Joblet;
 import VF2BasedWorkload.WorkloadEstimator;
+import org.apache.kerby.config.Conf;
 
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
@@ -32,7 +35,7 @@ public class Coordinator {
     //region --[Fields: Private]---------------------------------------
 
     private String nodeName = "coordinator";
-    private GraphLoader loader=null;
+    //private GraphLoader loader=null;
     private JobEstimator []estimator=null;
 
     private AtomicBoolean workersStatusChecker=new AtomicBoolean(true);
@@ -52,6 +55,9 @@ public class Coordinator {
     private TGFDDiscovery tgfdDiscovery;
 
     private List<PatternTreeNode> singlePatternTreeNodes;
+
+    private HashMap<DataVertex,Integer> fragmentsForTheInitialLoad = new HashMap<>();
+    private HashMap<String,Integer> fragmentsByVertexURIForTheInitialLoad = new HashMap<>();
 
     //endregion
 
@@ -108,6 +114,38 @@ public class Coordinator {
         dataAndChangeFilesGeneratorThread.start();
     }
 
+    public void initializeFromSplittedGraph(ArrayList<String> paths)
+    {
+        boolean inputParamForGraphOptimizedLoading = Config.optimizedLoadingBasedOnTGFD;
+        Config.optimizedLoadingBasedOnTGFD = false;
+
+
+        for (int i =0;i< paths.size();i++) {
+            String path = paths.get(i);
+            GraphLoader loader = null;
+            if(Config.datasetName== Config.dataset.dbpedia)
+                loader = new SimpleDBPediaLoader(new HashSet<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+            else if(Config.datasetName== Config.dataset.synthetic) {
+                //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
+            }
+            else if(Config.datasetName== Config.dataset.imdb) // default is imdb
+            {
+                //loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
+            }
+            for (Vertex v:loader.getGraph().getGraph().vertexSet()) {
+                DataVertex dataVertex = (DataVertex) v;
+                if(!fragmentsByVertexURIForTheInitialLoad.containsKey(dataVertex.getVertexURI()))
+                {
+                    fragmentsForTheInitialLoad.put(dataVertex, i+1);
+                    fragmentsByVertexURIForTheInitialLoad.put(dataVertex.getVertexURI(), i+1);
+                }
+            }
+
+        }
+
+        Config.optimizedLoadingBasedOnTGFD = inputParamForGraphOptimizedLoading;
+    }
+
     public void stop()
     {
         this.workersStatusChecker.set(false);
@@ -158,19 +196,19 @@ public class Coordinator {
 
     private void loadTheWorkload(Set<PatternTreeNode> singlePatternTreeNodes)
     {
-        if(Config.datasetName== Config.dataset.dbpedia)
-            loader = new SimpleDBPediaLoader(singlePatternTreeNodes, Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
-        else if(Config.datasetName== Config.dataset.synthetic) {
-            //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
-        }
-        else if(Config.datasetName== Config.dataset.imdb) // default is imdb
-        {
-            //loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
-        }
+//        if(Config.datasetName== Config.dataset.dbpedia)
+//            loader = new SimpleDBPediaLoader(singlePatternTreeNodes, Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+//        else if(Config.datasetName== Config.dataset.synthetic) {
+//            //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
+//        }
+//        else if(Config.datasetName== Config.dataset.imdb) // default is imdb
+//        {
+//            //loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
+//        }
+//
+//        System.out.println("Number of edges: " + loader.getGraph().getGraph().edgeSet().size());
 
-        System.out.println("Number of edges: " + loader.getGraph().getGraph().edgeSet().size());
-
-        estimator[0] =new JobEstimator(Util.graphs.get(0),Config.workers.size(),2);
+        estimator[0] =new JobEstimator(Util.graphs.get(0),Config.workers.size(), fragmentsByVertexURIForTheInitialLoad ,2);
         estimator[0].defineJobs(singlePatternTreeNodes);
         estimator[0].partitionWorkload();
         //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
