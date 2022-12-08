@@ -1,5 +1,6 @@
 package Loader;
 
+import Infra.PatternTreeNode;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class SimpleDBPediaLoader extends GraphLoader {
 
@@ -41,6 +43,23 @@ public class SimpleDBPediaLoader extends GraphLoader {
         }
     }
 
+    /**
+     * @param simplePatternTreeNodes List of PatternTreeNodes
+     * @param typesPath Path to the DBPedia type file
+     * @param dataPath Path to the DBPedia graph file
+     */
+    public SimpleDBPediaLoader(Set<PatternTreeNode> simplePatternTreeNodes, ArrayList<String> typesPath, ArrayList<String> dataPath)
+    {
+        super(simplePatternTreeNodes);
+
+        for (String typePath:typesPath) {
+            loadNodeMap(typePath);
+        }
+
+        for (String dataP:dataPath) {
+            loadDataGraph(dataP);
+        }
+    }
     //endregion
 
     //region --[Methods: Private]---------------------------------------

@@ -102,13 +102,6 @@ public class HDFSStorage {
         }
     }
 
-    public static Object downloadObject(String directoryName, String fileName)
-    {
-
-
-        return null;
-    }
-
     public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) {
 
         StringBuilder sb=new StringBuilder();
@@ -142,7 +135,7 @@ public class HDFSStorage {
         return sb;
     }
 
-    public static Object downloadHDFSFile(String directoryName, String fileName) {
+    public static Object downloadObject(String directoryName, String fileName) {
         Object obj = null;
         try {
             Configuration configuration = new Configuration();

@@ -99,11 +99,11 @@ public class TaskRunner {
             for (int i=1;i<temp.length;i++)
             {
                 String []arr=temp[i].split("#");
-                if(arr.length==4)
+                if(arr.length==5)
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[3]));
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[4]));
                     assignedJobsBySnapshot.get(0).put(job.getId(), job);
                 }
             }

@@ -1,10 +1,7 @@
-import ParalleRunner.MediumCoordinator;
-import ParalleRunner.MediumWorker;
 import ParallelDiscovery.Coordinator;
 import ParallelDiscovery.Worker;
 import Util.Config;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class testParallelDiscovery {

@@ -54,6 +54,21 @@ public class GraphLoader {
             }
     }
 
+    public GraphLoader(Set<PatternTreeNode> singlePatternTreeNode)
+    {
+        graph=new VF2DataGraph();
+        validTypes=new HashSet <>();
+        validAttributes=new HashSet<>();
+
+        if(Config.optimizedLoadingBasedOnTGFD)
+            for (PatternTreeNode ptn:singlePatternTreeNode) {
+                for (Vertex v:ptn.getPattern().getPattern().vertexSet()) {
+                    if(v instanceof PatternVertex)
+                        validTypes.addAll(v.getTypes());
+                }
+            }
+    }
+
     public GraphLoader()
     {
         graph=new VF2DataGraph();

@@ -2,7 +2,9 @@ package ParallelDiscovery;
 
 import ChangeExploration.Change;
 import ChangeExploration.ChangeLoader;
+import Discovery.Job;
 import Discovery.TGFDDiscovery;
+import Discovery.Util;
 import ICs.TGFD;
 import Infra.PatternTreeNode;
 import Infra.SimpleEdge;
@@ -21,10 +23,7 @@ import VF2BasedWorkload.WorkloadEstimator;
 import javax.jms.ExceptionListener;
 import javax.jms.JMSException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,8 +33,7 @@ public class Coordinator {
 
     private String nodeName = "coordinator";
     private GraphLoader loader=null;
-    private List<TGFD> tgfds;
-    private WorkloadEstimator estimator=null;
+    private JobEstimator []estimator=null;
 
     private AtomicBoolean workersStatusChecker=new AtomicBoolean(true);
     private AtomicBoolean workersResultsChecker =new AtomicBoolean(false);
@@ -52,6 +50,8 @@ public class Coordinator {
     private String []args;
 
     private TGFDDiscovery tgfdDiscovery;
+
+    private List<PatternTreeNode> singlePatternTreeNodes;
 
     //endregion
 
@@ -76,10 +76,12 @@ public class Coordinator {
         tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
 
-        List<PatternTreeNode> singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
+        estimator = new JobEstimator[Util.T];
+
+        this.singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
 
         String tmpName = "SinglePatterns_" + Config.generateRandomString(10);
-        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, false);
+        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, true);
 
         Producer messageProducer=new Producer();
         messageProducer.connect();
@@ -93,12 +95,13 @@ public class Coordinator {
         messageProducer.close();
         System.out.println("*VSPawn Starter*: All Single Node Patterns are assigned.");
 
-
-        loadTheWorkload();
-
         Thread setupThread = new Thread(new Setup());
         setupThread.setDaemon(false);
         setupThread.start();
+
+        Set<PatternTreeNode> hSet = new HashSet<>(singlePatternTreeNodes);
+        hSet.addAll(singlePatternTreeNodes);
+        loadTheWorkload(hSet);
 
         Thread dataAndChangeFilesGeneratorThread = new Thread(new ShippedDataGenerator());
         dataAndChangeFilesGeneratorThread.setDaemon(false);
@@ -113,7 +116,7 @@ public class Coordinator {
 
     public void assignJobs()
     {
-        Thread jobAssignerThread = new Thread(new JobletAssigner());
+        Thread jobAssignerThread = new Thread(new JobAssigner());
         jobAssignerThread.setDaemon(false);
         jobAssignerThread.start();
 
@@ -153,73 +156,27 @@ public class Coordinator {
 
     //region --[Private Methods]-----------------------------------------
 
-    private class VSpawnAssigner implements Runnable, ExceptionListener
+    private void loadTheWorkload(Set<PatternTreeNode> singlePatternTreeNodes)
     {
-        @Override
-        public void run() {
-            System.out.println("*VSpawn ASSIGNER*: Coordinator starts VSpawn to assign PatternTreeNode");
-            try {
-                while(getStatus()==Status.Coordinator_Waits_For_Workers_Status) {
-                    System.out.println("*VSpawn ASSIGNER*: Coordinator waits for these workers to be online: ");
-                    for (String worker : workersStatus.keySet()) {
-                        if (!workersStatus.get(worker))
-                            System.out.print(worker + " - ");
-                    }
-                    Thread.sleep(Config.threadsIdleTime);
-                }
-                Producer messageProducer=new Producer();
-                messageProducer.connect();
-                StringBuilder message;
-                for (int workerID:estimator.getJobletsByFragmentID().keySet()) {
-                    message= new StringBuilder();
-                    message.append("#joblets").append("\n");
-                    for (Joblet joblet:estimator.getJobletsByFragmentID().get(workerID)) {
-                        message.append(joblet.getId()).append("#")
-                                .append(joblet.getCenterNode()).append("#")
-                                .append(joblet.getTGFD().getName())
-                                .append("\n");
-                    }
-                    messageProducer.send(Config.workers.get(workerID),message.toString());
-                    System.out.println("*JOBLET ASSIGNER*: joblets assigned to '" + Config.workers.get(workerID) + "' successfully");
-                }
-                messageProducer.close();
-                System.out.println("*JOBLET ASSIGNER*: All joblets are assigned.");
-                superstep.set(1);
-                workersResultsChecker.set(true);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onException(JMSException e) {
-            System.out.println("*JOBLET ASSIGNER*: JMS Exception occurred (JobletAssigner).  Shutting down coordinator.");
-        }
-    }
-
-    private void loadTheWorkload()
-    {
-        TGFDGenerator generator = new TGFDGenerator(Config.patternPath);
-        tgfds=generator.getTGFDs();
-
         if(Config.datasetName== Config.dataset.dbpedia)
-            loader = new SimpleDBPediaLoader(tgfds, Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+            loader = new SimpleDBPediaLoader(singlePatternTreeNodes, Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
         else if(Config.datasetName== Config.dataset.synthetic) {
             //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
         }
         else if(Config.datasetName== Config.dataset.imdb) // default is imdb
-            loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
-
+        {
+            //loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
+        }
 
         System.out.println("Number of edges: " + loader.getGraph().getGraph().edgeSet().size());
 
-        estimator=new WorkloadEstimator(loader,Config.workers.size());
-        estimator.defineJoblets(generator.getTGFDs());
-        estimator.partitionWorkload();
+        estimator[0] =new JobEstimator(Util.graphs.get(0),Config.workers.size(),2);
+        estimator[0].defineJobs(singlePatternTreeNodes);
+        estimator[0].partitionWorkload();
         //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
-        HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator.dataToBeShipped();
-        HashMap<Integer, ArrayList<String>> filesOnS3Storage = estimator.sendEdgesToWorkersForShipment(dataToBeShipped);
-        edgesToBeShippedToOtherWorkers.put(1,filesOnS3Storage);
+        HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator[0].dataToBeShipped();
+        HashMap<Integer, ArrayList<String>> filesOnSharedStorage = estimator[0].sendEdgesToWorkersForShipment(dataToBeShipped);
+        edgesToBeShippedToOtherWorkers.put(1,filesOnSharedStorage);
     }
 
     private class Setup implements Runnable, ExceptionListener
@@ -288,14 +245,14 @@ public class Coordinator {
         }
     }
 
-    private class JobletAssigner implements Runnable, ExceptionListener
+    private class JobAssigner implements Runnable, ExceptionListener
     {
         @Override
         public void run() {
-            System.out.println("*JOBLET ASSIGNER*: Joblets are received to be assigned to the workers");
+            System.out.println("*JOB ASSIGNER*: Jobs are received to be assigned to the workers");
             try {
                 while(getStatus()==Status.Coordinator_Waits_For_Workers_Status) {
-                    System.out.println("*JOBLET ASSIGNER*: Coordinator waits for these workers to be online: ");
+                    System.out.println("*JOB ASSIGNER*: Coordinator waits for these workers to be online: ");
                     for (String worker : workersStatus.keySet()) {
                         if (!workersStatus.get(worker))
                             System.out.print(worker + " - ");
@@ -305,30 +262,33 @@ public class Coordinator {
                 Producer messageProducer=new Producer();
                 messageProducer.connect();
                 StringBuilder message;
-                for (int workerID:estimator.getJobletsByFragmentID().keySet()) {
+                for (int workerID:estimator[0].getJobsByFragmentID().keySet()) {
                     message= new StringBuilder();
-                    message.append("#joblets").append("\n");
-                    for (Joblet joblet:estimator.getJobletsByFragmentID().get(workerID)) {
-                        message.append(joblet.getId()).append("#")
-                                .append(joblet.getCenterNode()).append("#")
-                                .append(joblet.getTGFD().getName())
+                    message.append("#jobs").append("\n");
+                    for (Job job:estimator[0].getJobsByFragmentID().get(workerID)) {
+                        // A job is in the form of the following
+                        // id # CenterNodeVertexID # diameter # FragmentID # Type
+                        message.append(job.getId()).append("#")
+                                .append(job.getCenterNode()).append("#")
+                                .append(job.getDiameter()).append("#")
+                                .append(job.getFragmentID()).append("#")
+                                .append(job.getCenterNode().getTypes().iterator().next())
                                 .append("\n");
                     }
                     messageProducer.send(Config.workers.get(workerID),message.toString());
-                    System.out.println("*JOBLET ASSIGNER*: joblets assigned to '" + Config.workers.get(workerID) + "' successfully");
+                    System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
                 }
                 messageProducer.close();
-                System.out.println("*JOBLET ASSIGNER*: All joblets are assigned.");
+                System.out.println("*JOB ASSIGNER*: All jobs are assigned.");
                 superstep.set(1);
                 workersResultsChecker.set(true);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
         @Override
         public void onException(JMSException e) {
-            System.out.println("*JOBLET ASSIGNER*: JMS Exception occurred (JobletAssigner).  Shutting down coordinator.");
+            System.out.println("*JOB ASSIGNER*: JMS Exception occurred (JobAssigner).  Shutting down coordinator.");
         }
     }
 
@@ -336,7 +296,7 @@ public class Coordinator {
     {
         @Override
         public void run() {
-            System.out.println("*JOBLET ASSIGNER*: Joblets are received to be assigned to the workers");
+            System.out.println("*DATA SHIPPER*: Edges are received to be shipped to the workers");
             try {
                 while (true)
                 {
@@ -346,9 +306,27 @@ public class Coordinator {
                         Thread.sleep(Config.threadsIdleTime);
                         currentSuperstep=superstep.get();
                     }
+
                     Producer messageProducer=new Producer();
                     messageProducer.connect();
                     StringBuilder message;
+                    for (int workerID:estimator[currentSuperstep-1].getJobsByFragmentID().keySet()) {
+                        message= new StringBuilder();
+                        message.append("#newjobs").append("\n");
+                        for (Job job:estimator[currentSuperstep-1].getJobsByFragmentID().get(workerID)) {
+                            // A job is in the form of the following
+                            // id # CenterNodeVertexID # diameter # FragmentID # Type
+                            message.append(job.getId()).append("#")
+                                    .append(job.getCenterNode()).append("#")
+                                    .append(job.getDiameter()).append("#")
+                                    .append(job.getFragmentID()).append("#")
+                                    .append(job.getCenterNode().getTypes().iterator().next())
+                                    .append("\n");
+                        }
+                        messageProducer.send(Config.workers.get(workerID),message.toString());
+                        System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
+                    }
+
                     for (int workerID:edgesToBeShippedToOtherWorkers.get(currentSuperstep).keySet()) {
                         message= new StringBuilder();
                         message.append("#datashipper").append("\n");
@@ -357,16 +335,6 @@ public class Coordinator {
                         }
                         messageProducer.send(Config.workers.get(workerID),message.toString());
                         System.out.println("*DataShipper*: Shipping files have been shared with '" + Config.workers.get(workerID) + "' successfully");
-                    }
-
-                    if(changesToBeSentToOtherWorkers.containsKey(currentSuperstep))
-                    {
-                        for (int workerID:changesToBeSentToOtherWorkers.get(currentSuperstep).keySet()) {
-                            message= new StringBuilder();
-                            message.append("#change").append("\n").append(changesToBeSentToOtherWorkers.get(currentSuperstep).get(workerID));
-                            messageProducer.send(Config.workers.get(workerID),message.toString());
-                            System.out.println("*DataShipper*: Change objects have been shared with '" + Config.workers.get(workerID) + "' successfully");
-                        }
                     }
                     messageProducer.close();
                     System.out.println("*DataShipper*: All files are shared for the superstep: " + currentSuperstep);
@@ -392,22 +360,27 @@ public class Coordinator {
         public void run() {
             System.out.println("*DATA NEEDS TO BE SHIPPED*: Generating files to upload to S3 to send to workers later");
             try {
-                Object[] ids= Config.getDiffFilesPath().keySet().toArray();
-                Arrays.sort(ids);
-                for (int i=0;i<ids.length;i++) {
-                    System.out.println("*DATA NEEDS TO BE SHIPPED*: Generating files for snapshot (" + ids[i] + ")");
+                for (int i=1;i<=Util.T;i++) {
+                    estimator[i] =new JobEstimator(Util.graphs.get(i),Config.workers.size(),estimator[i-1].getFragmentsByVertexURI(),2);
 
-                    ChangeLoader changeLoader = new ChangeLoader(Config.getDiffFilesPath().get(ids[i]));
-                    List<Change> changes = changeLoader.getAllChanges();
+                    HashMap<PatternTreeNode, HashSet<String>> previouslyDefinedJobsForVertices = new HashMap<>();
+                    for (int j=0; j<i;j++)
+                    {
+                        HashMap<PatternTreeNode, HashSet<String>> temp = estimator[j].getAlreadyDefinedJobsForVertices();
+                        for (PatternTreeNode ptn:temp.keySet()) {
+                            if(!previouslyDefinedJobsForVertices.containsKey(ptn))
+                                previouslyDefinedJobsForVertices.put(ptn,new HashSet<>());
+                            previouslyDefinedJobsForVertices.get(ptn).addAll(temp.get(ptn));
+                        }
+                    }
 
-                    HashMap<Integer,HashMap<Integer,ArrayList<SimpleEdge>>> dataToBeShipped=estimator.dataToBeShipped(changes);
-                    HashMap<Integer, ArrayList<String>> filesOnS3Storage = estimator.sendEdgesToWorkersForShipment(dataToBeShipped);
-
-                    HashMap<Integer,List<Change>> changesToBeSent=estimator.changesToBeSent(changes);
-                    HashMap<Integer, String> changesOnS3Storage = estimator.sendChangesToWorkers(changesToBeSent,i+2);
-
-                    changesToBeSentToOtherWorkers.put(i+2,changesOnS3Storage);
-                    edgesToBeShippedToOtherWorkers.put(i+2,filesOnS3Storage);
+                    estimator[i].defineNewJobs(singlePatternTreeNodes,previouslyDefinedJobsForVertices);
+                    estimator[i].partitionWorkload();
+                    //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
+                    HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator[i].dataToBeShipped();
+                    HashMap<Integer, ArrayList<String>> filesOnSharedStorage = estimator[i].sendEdgesToWorkersForShipment(dataToBeShipped);
+                    edgesToBeShippedToOtherWorkers.put(i+1,filesOnSharedStorage);
+                    System.out.println("*DATA NEEDS TO BE SHIPPED*: Generating files for snapshot (" + (i+1) + ")");
 
                 }
             } catch (Exception e) {

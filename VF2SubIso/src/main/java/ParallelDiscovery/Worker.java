@@ -1,6 +1,5 @@
 package ParallelDiscovery;
 
-import ChangeExploration.Change;
 import Discovery.TGFDDiscovery;
 import Discovery.TaskRunner;
 import Infra.PatternTreeNode;
@@ -13,8 +12,6 @@ import Partitioner.Util;
 import SharedStorage.HDFSStorage;
 import SharedStorage.S3Storage;
 import Util.Config;
-import VF2BasedWorkload.JobletRunner;
-import org.apache.kerby.config.Conf;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
@@ -95,7 +92,7 @@ public class Worker {
                 {
                     String fileName = msg.split("\t")[1];
                     // TODO: Add S3 option
-                    singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadHDFSFile(Config.HDFSDirectory,fileName);
+                    singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadObject(Config.HDFSDirectory,fileName);
                     System.out.println("All single PatternTreeNodes have been received.");
                     singlePatternTreeNodesRecieved=true;
                 }
@@ -146,7 +143,7 @@ public class Worker {
             if(Config.sharedStorage == Config.SharedStorage.S3)
                 S3Storage.upload(Config.S3BucketName,key,graphToBeSent);
             else if (Config.sharedStorage == Config.SharedStorage.HDFS)
-                HDFSStorage.upload(Config.S3BucketName,key,graphToBeSent,true);
+                HDFSStorage.upload(Config.HDFSDirectory,key,graphToBeSent,true);
 
             Producer messageProducer=new Producer();
             messageProducer.connect();

@@ -61,6 +61,11 @@ public class Job {
         return fragmentID;
     }
 
+    public int getSize()
+    {
+        return patternTreeNode.getGraph().edgeSet().size();
+    }
+
     public PatternTreeNode getPatternTreeNode() {
         return patternTreeNode;
     }

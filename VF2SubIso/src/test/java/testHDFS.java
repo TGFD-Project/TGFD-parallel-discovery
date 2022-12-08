@@ -1,14 +1,10 @@
-import ICs.TGFD;
 import Infra.DataVertex;
-import Infra.Delta;
 import Infra.RelationshipEdge;
 import Infra.VF2DataGraph;
 import SharedStorage.HDFSStorage;
 import Util.Config;
-import org.apache.kerby.config.Conf;
 
 import java.io.IOException;
-import java.time.Period;
 
 public class testHDFS {
 
@@ -42,7 +38,7 @@ public class testHDFS {
 
         HDFSStorage.upload("/dir1/", "testGraph", generateDataGraph(), false);
 
-        VF2DataGraph t = (VF2DataGraph) HDFSStorage.downloadHDFSFile("/dir1/","testGraph");
+        VF2DataGraph t = (VF2DataGraph) HDFSStorage.downloadObject("/dir1/","testGraph");
 
         System.out.println("upload done.");
 
