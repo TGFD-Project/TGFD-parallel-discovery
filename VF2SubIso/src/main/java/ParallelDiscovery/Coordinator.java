@@ -124,6 +124,7 @@ public class Coordinator {
             String path = paths.get(i);
             GraphLoader loader = null;
             if(Config.datasetName== Config.dataset.dbpedia)
+                //TODO: Needs to be fixed
                 loader = new SimpleDBPediaLoader(new HashSet<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
             else if(Config.datasetName== Config.dataset.synthetic) {
                 //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
