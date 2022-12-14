@@ -6,10 +6,7 @@ import Discovery.Job;
 import Discovery.TGFDDiscovery;
 import Discovery.Util;
 import ICs.TGFD;
-import Infra.DataVertex;
-import Infra.PatternTreeNode;
-import Infra.SimpleEdge;
-import Infra.Vertex;
+import Infra.*;
 import Loader.GraphLoader;
 import Loader.SimpleDBPediaLoader;
 import Loader.SimpleIMDBLoader;
@@ -18,6 +15,7 @@ import MPI.Consumer;
 import MPI.Producer;
 import ParalleRunner.Status;
 import SharedStorage.HDFSStorage;
+import SharedStorage.S3Storage;
 import Util.Config;
 import VF2BasedWorkload.Joblet;
 import VF2BasedWorkload.WorkloadEstimator;
@@ -87,7 +85,10 @@ public class Coordinator {
         this.singlePatternTreeNodes = tgfdDiscovery.vSpawnSinglePatternTreeNode();
 
         String tmpName = "SinglePatterns_" + Config.generateRandomString(10);
-        HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, true);
+        if(Config.sharedStorage == Config.SharedStorage.HDFS)
+            HDFSStorage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes, true);
+        else if(Config.sharedStorage == Config.SharedStorage.S3)
+            S3Storage.upload(Config.HDFSDirectory,tmpName,singlePatternTreeNodes);
 
         Producer messageProducer=new Producer();
         messageProducer.connect();
@@ -100,6 +101,8 @@ public class Coordinator {
         }
         messageProducer.close();
         System.out.println("*VSPawn Starter*: All Single Node Patterns are assigned.");
+
+        sendHistogramStats();
 
         Thread setupThread = new Thread(new Setup());
         setupThread.setDaemon(false);
@@ -141,7 +144,6 @@ public class Coordinator {
                     fragmentsByVertexURIForTheInitialLoad.put(dataVertex.getVertexURI(), i+1);
                 }
             }
-
         }
 
         Config.optimizedLoadingBasedOnTGFD = inputParamForGraphOptimizedLoading;
@@ -189,6 +191,49 @@ public class Coordinator {
             return Status.Coordinator_Is_Done;
         else
             return Status.Coordinator_Assigns_jobs_To_Workers;
+    }
+
+    public void sendHistogramStats()
+    {
+        List<MapEntry> listSortedFrequentEdgesHistogram = new ArrayList<>();
+        for (Map.Entry<String, Integer> m:Util.sortedFrequentEdgesHistogram) {
+            listSortedFrequentEdgesHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+        }
+
+        List<MapEntry> listSortedVertexHistogram = new ArrayList<>();
+        for (Map.Entry<String, Integer> m:Util.sortedVertexHistogram) {
+            listSortedVertexHistogram.add(new MapEntry(m.getKey(), m.getValue()));
+        }
+
+        if(Config.sharedStorage== Config.SharedStorage.HDFS)
+        {
+            HDFSStorage.upload(Config.HDFSDirectory, "vertexTypesToAvgInDegreeMap", Util.vertexTypesToAvgInDegreeMap,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "activeAttributesSet", Util.activeAttributesSet,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "vertexTypesToActiveAttributesMap", Util.vertexTypesToActiveAttributesMap,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "sortedFrequentEdgesHistogram", listSortedFrequentEdgesHistogram,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "sortedVertexHistogram", listSortedVertexHistogram,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "vertexHistogram", Util.vertexHistogram,true);
+            HDFSStorage.upload(Config.HDFSDirectory, "typeChangeURIs", Util.typeChangeURIs,true);
+        }
+        else if(Config.sharedStorage == Config.SharedStorage.S3)
+        {
+            S3Storage.upload(Config.S3BucketName, "vertexTypesToAvgInDegreeMap", Util.vertexTypesToAvgInDegreeMap);
+            S3Storage.upload(Config.S3BucketName, "activeAttributesSet", Util.activeAttributesSet);
+            S3Storage.upload(Config.S3BucketName, "vertexTypesToActiveAttributesMap", Util.vertexTypesToActiveAttributesMap);
+            S3Storage.upload(Config.S3BucketName, "sortedFrequentEdgesHistogram", listSortedFrequentEdgesHistogram);
+            S3Storage.upload(Config.S3BucketName, "sortedVertexHistogram", listSortedVertexHistogram);
+            S3Storage.upload(Config.S3BucketName, "vertexHistogram", Util.vertexHistogram);
+            S3Storage.upload(Config.S3BucketName, "typeChangeURIs", Util.typeChangeURIs);
+        }
+
+        Producer messageProducer=new Producer();
+        messageProducer.connect();
+        for (String worker: Config.workers) {
+            messageProducer.send(worker,"#histogram");
+            System.out.println("*VSPawn Starter*: Message for Histogram sent to '" + worker + "' successfully");
+        }
+        messageProducer.close();
+        System.out.println("*VSPawn Starter*: All Single Node Patterns are assigned.");
     }
 
     //endregion
@@ -414,7 +459,6 @@ public class Coordinator {
                             previouslyDefinedJobsForVertices.get(ptn).addAll(temp.get(ptn));
                         }
                     }
-
                     estimator[i].defineNewJobs(singlePatternTreeNodes,previouslyDefinedJobsForVertices);
                     estimator[i].partitionWorkload();
                     //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());

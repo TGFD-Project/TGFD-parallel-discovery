@@ -2,10 +2,7 @@ package ParallelDiscovery;
 
 import Discovery.TGFDDiscovery;
 import Discovery.TaskRunner;
-import Infra.PatternTreeNode;
-import Infra.RelationshipEdge;
-import Infra.SimpleEdge;
-import Infra.Vertex;
+import Infra.*;
 import MPI.Consumer;
 import MPI.Producer;
 import Partitioner.Util;
@@ -16,10 +13,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Worker {
 
@@ -54,6 +48,8 @@ public class Worker {
         sendStatusToCoordinator();
 
         receiveSingleNodePatterns();
+
+        receiveHistogramStats();
 
         runner=new TaskRunner(Config.supersteps);
 
@@ -91,14 +87,69 @@ public class Worker {
                 if(msg.startsWith("#singlePattern"))
                 {
                     String fileName = msg.split("\t")[1];
-                    // TODO: Add S3 option
-                    singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadObject(Config.HDFSDirectory,fileName);
+                    if(Config.sharedStorage == Config.SharedStorage.HDFS)
+                        singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadObject(Config.HDFSDirectory,fileName);
+                    else if(Config.sharedStorage == Config.SharedStorage.S3)
+                        singlePatternTreeNodes = (List<PatternTreeNode>) S3Storage.downloadObject(Config.S3BucketName,fileName);
                     System.out.println("All single PatternTreeNodes have been received.");
                     singlePatternTreeNodesRecieved=true;
                 }
             }
             else
                 System.out.println("*SINGLE PATTERNTREENODE  RECEIVER*: Error happened - message is null");
+        }
+        consumer.close();
+    }
+
+    private void receiveHistogramStats()
+    {
+        boolean histogramStatsReceived=false;
+
+        Consumer consumer=new Consumer();
+        consumer.connect(nodeName);
+
+        while (!histogramStatsReceived)
+        {
+            String msg=consumer.receive();
+            if (msg !=null) {
+                if(msg.startsWith("#histogram"))
+                {
+                    List<MapEntry> listSortedFrequentEdgesHistogram = new ArrayList<>();
+                    List<MapEntry> listSortedVertexHistogram = new ArrayList<>();
+                    if(Config.sharedStorage == Config.SharedStorage.HDFS)
+                    {
+                        Discovery.Util.vertexTypesToAvgInDegreeMap = (Map<String, Double>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexTypesToAvgInDegreeMap");
+                        Discovery.Util.activeAttributesSet = (Set<String>) HDFSStorage.downloadObject(Config.HDFSDirectory, "activeAttributesSet");
+                        Discovery.Util.vertexTypesToActiveAttributesMap = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexTypesToActiveAttributesMap");
+                        Discovery.Util.vertexHistogram = (Map<String, Integer>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexHistogram");
+                        Discovery.Util.typeChangeURIs = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "typeChangeURIs");
+                        listSortedFrequentEdgesHistogram = (List<MapEntry>) HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedFrequentEdgesHistogram");
+                        listSortedVertexHistogram = (List<MapEntry>) HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedVertexHistogram");
+
+                    }
+                    else if(Config.sharedStorage == Config.SharedStorage.S3)
+                    {
+                        Discovery.Util.vertexTypesToAvgInDegreeMap = (Map<String, Double>) S3Storage.downloadObject(Config.S3BucketName, "vertexTypesToAvgInDegreeMap");
+                        Discovery.Util.activeAttributesSet = (Set<String>) S3Storage.downloadObject(Config.S3BucketName, "activeAttributesSet");
+                        Discovery.Util.vertexTypesToActiveAttributesMap = (Map<String, Set<String>>) S3Storage.downloadObject(Config.S3BucketName, "vertexTypesToActiveAttributesMap");
+                        Discovery.Util.vertexHistogram = (Map<String, Integer>) S3Storage.downloadObject(Config.S3BucketName, "vertexHistogram");
+                        Discovery.Util.typeChangeURIs = (Map<String, Set<String>>) S3Storage.downloadObject(Config.S3BucketName, "typeChangeURIs");
+                        listSortedFrequentEdgesHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedFrequentEdgesHistogram");
+                        listSortedVertexHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedVertexHistogram");
+                    }
+                    for (MapEntry entry: listSortedFrequentEdgesHistogram) {
+                        Discovery.Util.sortedFrequentEdgesHistogram.add(new AbstractMap.SimpleEntry<>(entry.key, entry.value));
+                    }
+                    for (MapEntry entry: listSortedVertexHistogram) {
+                        Discovery.Util.sortedVertexHistogram.add(new AbstractMap.SimpleEntry<>(entry.key, entry.value));
+                    }
+
+                    System.out.println("All Stats for the Histogram have been received.");
+                    histogramStatsReceived=true;
+                }
+            }
+            else
+                System.out.println("*Histogram Stats  RECEIVER*: Error happened - message is null");
         }
         consumer.close();
     }
