@@ -137,6 +137,8 @@ public class Worker {
                         listSortedFrequentEdgesHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedFrequentEdgesHistogram");
                         listSortedVertexHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedVertexHistogram");
                     }
+                    Discovery.Util.sortedFrequentEdgesHistogram = new ArrayList<>();
+                    Discovery.Util.sortedVertexHistogram = new ArrayList<>();
                     for (MapEntry entry: listSortedFrequentEdgesHistogram) {
                         Discovery.Util.sortedFrequentEdgesHistogram.add(new AbstractMap.SimpleEntry<>(entry.key, entry.value));
                     }
