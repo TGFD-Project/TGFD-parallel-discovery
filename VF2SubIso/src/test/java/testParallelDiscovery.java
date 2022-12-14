@@ -39,8 +39,8 @@ public class testParallelDiscovery {
 
             Coordinator coordinator =new Coordinator(args);
             ArrayList<String> paths = new ArrayList<>();
-            paths.add("Path To the first snapshot of the first worker");
-            paths.add("Path To the first snapshot of the second worker");
+//            paths.add("Path To the first snapshot of the first worker");
+            paths.add("/Users/roy/Desktop/TGFD/dbpedia-50000_split/2014/DBPedia_data0_2014.ttl");
             coordinator.initializeFromSplittedGraph(paths);
             coordinator.start();
             coordinator.assignJobs();

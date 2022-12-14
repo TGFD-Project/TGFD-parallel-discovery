@@ -67,7 +67,7 @@ public class JobEstimator {
         jobsByID=new HashMap<>();
         jobsByFragmentID= new HashMap<>();
         int jobID=0;
-        IntStream.range(0, numberOfProcessors)
+        IntStream.range(1, numberOfProcessors+1)
                 .forEach(i -> jobsByFragmentID.put(i, new ArrayList<>()));
 
         for (PatternTreeNode ptn:singlePatternTreeNodes) {

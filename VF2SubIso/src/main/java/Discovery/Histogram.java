@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import Util.Config;
 
 public class Histogram {
     private final int frequentSetSize;
@@ -82,11 +83,13 @@ public class Histogram {
             throw new IllegalArgumentException("No paths specified for changefiles.");
         System.out.println("-----------Snapshot (1)-----------");
         GraphLoader graphLoader = createGraphForTimestamp(timestampToPathsMap.get(0));
-        computeHistogramOfSnapshot(graphLoader, superVertexDegree); allSnapshotsCheckList[0] = true;
-        for (int i = 0; i < this.T-1; i++) {
+        computeHistogramOfSnapshot(graphLoader, superVertexDegree);
+        allSnapshotsCheckList[0] = true;
+        for (int i = 0; i < this.T - 1; i++) {
             System.out.println("-----------Snapshot (" + (i + 2) + ")-----------");
             updateGraphUsingChangefile(graphLoader, changefilePaths.get(i), storeInMemory);
-            computeHistogramOfSnapshot(graphLoader, superVertexDegree); allSnapshotsCheckList[i+1] = true;
+            computeHistogramOfSnapshot(graphLoader, superVertexDegree);
+            allSnapshotsCheckList[i + 1] = true;
         }
         this.printVertexAndEdgeStatisticsForEntireTemporalGraph();
         final long superVertexHandlingTime = System.currentTimeMillis();
@@ -110,10 +113,13 @@ public class Histogram {
         int t = 0;
         for (Map.Entry<String, List<String>> timestampToPathEntry : timestampToPathsMap) {
             GraphLoader graphLoader = createGraphForTimestamp(timestampToPathEntry);
-            computeHistogramOfSnapshot(graphLoader, superVertexDegree); allSnapshotsCheckList[t] = true; t++;
+            computeHistogramOfSnapshot(graphLoader, superVertexDegree);
+            allSnapshotsCheckList[t] = true;
+            t++;
             if (storeInMemory)
                 this.graphs.add(graphLoader);
         }
+        Config.optimizedLoadingBasedOnTGFD = true;
         this.printVertexAndEdgeStatisticsForEntireTemporalGraph();
         this.calculateMedianInDegree();
         performRecordKeeping();
@@ -122,7 +128,9 @@ public class Histogram {
     public void computeHistogramUsingGraphs(Integer superVertexDegree) {
         int t = 0;
         for (GraphLoader graph : graphs) {
-            computeHistogramOfSnapshot(graph, superVertexDegree); allSnapshotsCheckList[t] = true; t++;
+            computeHistogramOfSnapshot(graph, superVertexDegree);
+            allSnapshotsCheckList[t] = true;
+            t++;
         }
         this.printVertexAndEdgeStatisticsForEntireTemporalGraph();
         this.calculateMedianInDegree();
@@ -135,7 +143,9 @@ public class Histogram {
         int t = 0;
         for (Map.Entry<String, List<String>> timestampToPathEntry : timestampToPathsMap) {
             GraphLoader graphLoader = createGraphForTimestamp(timestampToPathEntry);
-            computeHistogramOfSnapshot(graphLoader, null); allSnapshotsCheckList[t] = true; t++;
+            computeHistogramOfSnapshot(graphLoader, null);
+            allSnapshotsCheckList[t] = true;
+            t++;
             this.graphs.add(graphLoader);
         }
         this.printVertexAndEdgeStatisticsForEntireTemporalGraph();
@@ -180,7 +190,7 @@ public class Histogram {
         System.out.println("Number of edge types: " + this.sortedFrequentEdgesHistogram.size());
         System.out.println("Frequent Edges:");
         for (Map.Entry<String, Integer> entry : this.sortedFrequentEdgesHistogram) {
-            System.out.println("edge=\"" + entry.getKey() + "\", count=" + entry.getValue() + ", support=" +(1.0 * entry.getValue() / this.getNumOfEdgesInAllGraphs()));
+            System.out.println("edge=\"" + entry.getKey() + "\", count=" + entry.getValue() + ", support=" + (1.0 * entry.getValue() / this.getNumOfEdgesInAllGraphs()));
         }
         System.out.println();
     }
@@ -199,7 +209,7 @@ public class Histogram {
         ChangeLoader changeLoader = new ChangeLoader(jsonArray, null, null, true);
         IncUpdates incUpdatesOnDBpedia = new IncUpdates(graphLoader.getGraph(), new ArrayList<>());
         this.typeChangesURIs = new HashMap<>();
-        for (Change change: changeLoader.getAllChanges()) {
+        for (Change change : changeLoader.getAllChanges()) {
             if (change.getTypeOfChange() == ChangeType.changeType) {
                 String uri = ((TypeChange) change).getUri();
                 this.typeChangesURIs.putIfAbsent(uri, new HashSet<>());
@@ -218,15 +228,15 @@ public class Histogram {
 
     public GraphLoader createGraphForTimestamp(Map.Entry<String, List<String>> timestampToPathEntry) {
         final long graphLoadTime = System.currentTimeMillis();
-        Model model = ModelFactory.createDefaultModel();
-        for (String path : timestampToPathEntry.getValue()) {
-            if (!path.toLowerCase().endsWith(".ttl") && !path.toLowerCase().endsWith(".nt"))
-                continue;
-            if (path.toLowerCase().contains("literals") || path.toLowerCase().contains("objects"))
-                continue;
-            Path input = Paths.get(path);
-            model.read(input.toUri().toString());
-        }
+//        Model model = ModelFactory.createDefaultModel();
+//        for (String path : timestampToPathEntry.getValue()) {
+//            if (!path.toLowerCase().endsWith(".ttl") && !path.toLowerCase().endsWith(".nt"))
+//                continue;
+//            if (path.toLowerCase().contains("literals") || path.toLowerCase().contains("objects"))
+//                continue;
+//            Path input = Paths.get(path);
+//            model.read(input.toUri().toString());
+//        }
         Model dataModel = ModelFactory.createDefaultModel();
         for (String path : timestampToPathEntry.getValue()) {
             if (!path.toLowerCase().endsWith(".ttl") && !path.toLowerCase().endsWith(".nt"))
@@ -239,10 +249,17 @@ public class Histogram {
         }
         GraphLoader graphLoader = null;
         switch (this.loader) {
-            case "dbpedia": graphLoader = new DBPediaLoader(new ArrayList<>(), Collections.singletonList(model), Collections.singletonList(dataModel)); break;
-            case "synthetic": graphLoader = new SyntheticLoader(new ArrayList<>(), timestampToPathEntry.getValue()); break;
-            case "imdb": graphLoader = new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel)); break;
-            default: throw new IllegalArgumentException("Specified loader " + this.loader + " is not supported.");
+            case "dbpedia":
+                graphLoader = new DBPediaLoader(new ArrayList<>(), Collections.singletonList(dataModel), Collections.singletonList(dataModel));
+                break;
+            case "synthetic":
+                graphLoader = new SyntheticLoader(new ArrayList<>(), timestampToPathEntry.getValue());
+                break;
+            case "imdb":
+                graphLoader = new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel));
+                break;
+            default:
+                throw new IllegalArgumentException("Specified loader " + this.loader + " is not supported.");
         }
         Discovery.Util.printWithTime("Single graph load", (System.currentTimeMillis() - graphLoadTime));
         return graphLoader;
@@ -263,13 +280,13 @@ public class Histogram {
         int numOfEdgesDeleted = 0;
         int numOfVerticesInGraph = 0;
         int numOfAttributesInGraph = 0;
-        for (Vertex v: graph.getGraph().getGraph().vertexSet()) {
+        for (Vertex v : graph.getGraph().getGraph().vertexSet()) {
             numOfVerticesInGraph++;
             for (String vertexType : v.getTypes()) {
                 this.vertexTypesHistogram.merge(vertexType, 1, Integer::sum);
                 this.vertexTypesToAttributesMap.putIfAbsent(vertexType, new HashSet<>());
 
-                for (String attrName: v.getAllAttributesNames()) {
+                for (String attrName : v.getAllAttributesNames()) {
                     if (attrName.equals("uri"))
                         continue;
                     numOfAttributesInGraph++;
@@ -331,14 +348,14 @@ public class Histogram {
                 }
             }
         }
-        for (Map.Entry<String, List<Integer>> entry: this.vertexTypesToInDegreesMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : this.vertexTypesToInDegreesMap.entrySet()) {
             entry.getValue().sort(Comparator.naturalOrder());
         }
         System.out.println("Number of vertices in graph: " + numOfVerticesInGraph);
         System.out.println("Number of attributes in graph: " + numOfAttributesInGraph);
 
         System.out.println("Number of attributes added to graph: " + numOfAttributesAdded);
-        System.out.println("Updated count of attributes in graph: " + (numOfAttributesInGraph+numOfAttributesAdded));
+        System.out.println("Updated count of attributes in graph: " + (numOfAttributesInGraph + numOfAttributesAdded));
 
         System.out.println("Number of edges deleted from graph: " + numOfEdgesDeleted);
         int newEdgeCount = graph.getGraph().getGraph().edgeSet().size();
@@ -349,13 +366,13 @@ public class Histogram {
 
     private void readEdgesInfoFromGraph(GraphLoader graph) {
         int numOfEdges = 0;
-        for (RelationshipEdge e: graph.getGraph().getGraph().edgeSet()) {
+        for (RelationshipEdge e : graph.getGraph().getGraph().edgeSet()) {
             numOfEdges++;
             Vertex sourceVertex = e.getSource();
             String predicateName = e.getLabel();
             Vertex objectVertex = e.getTarget();
-            for (String subjectVertexType: sourceVertex.getTypes()) {
-                for (String objectVertexType: objectVertex.getTypes()) {
+            for (String subjectVertexType : sourceVertex.getTypes()) {
+                for (String objectVertexType : objectVertex.getTypes()) {
                     String uniqueEdge = subjectVertexType + " " + predicateName + " " + objectVertexType;
                     this.edgeTypesHistogram.merge(uniqueEdge, 1, Integer::sum);
                 }
@@ -368,25 +385,25 @@ public class Histogram {
     private double calculateAverageInDegree(Map<String, List<Integer>> vertexTypesToInDegreesMap) {
         System.out.println("Average in-degrees of vertex types...");
         List<Double> avgInDegrees = new ArrayList<>();
-        for (Map.Entry<String, List<Integer>> entry: vertexTypesToInDegreesMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : vertexTypesToInDegreesMap.entrySet()) {
             if (entry.getValue().size() == 0) continue;
             entry.getValue().sort(Comparator.naturalOrder());
             double avgInDegree = (double) entry.getValue().stream().mapToInt(Integer::intValue).sum() / (double) entry.getValue().size();
-            System.out.println(entry.getKey()+": "+avgInDegree);
+            System.out.println(entry.getKey() + ": " + avgInDegree);
             avgInDegrees.add(avgInDegree);
             this.vertexTypesToMedianInDegreeMap.put(entry.getKey(), avgInDegree);
         }
 //		double avgInDegree = avgInDegrees.stream().mapToDouble(Double::doubleValue).sum() / (double) avgInDegrees.size();
         double avgInDegree = this.getHighOutlierThreshold(avgInDegrees);
         double degreeForSuperVertexTypes = (Math.max(avgInDegree, DEFAULT_AVG_SUPER_VERTEX_DEGREE));
-        System.out.println("Super vertex degree is "+ degreeForSuperVertexTypes);
+        System.out.println("Super vertex degree is " + degreeForSuperVertexTypes);
         return degreeForSuperVertexTypes;
     }
 
     protected double calculateMedianInDegree() {
         System.out.println("Median in-degrees of vertex types...");
         List<Double> medianInDegrees = new ArrayList<>();
-        for (Map.Entry<String, List<Integer>> entry: this.vertexTypesToInDegreesMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : this.vertexTypesToInDegreesMap.entrySet()) {
             if (entry.getValue().size() == 0) {
                 this.vertexTypesToMedianInDegreeMap.put(entry.getKey(), 0.0);
                 continue;
@@ -394,34 +411,34 @@ public class Histogram {
             entry.getValue().sort(Comparator.naturalOrder());
             double medianInDegree;
             if (entry.getValue().size() % 2 == 0) {
-                medianInDegree = (entry.getValue().get(entry.getValue().size()/2) + entry.getValue().get(entry.getValue().size()/2-1))/2.0;
+                medianInDegree = (entry.getValue().get(entry.getValue().size() / 2) + entry.getValue().get(entry.getValue().size() / 2 - 1)) / 2.0;
             } else {
-                medianInDegree = entry.getValue().get(entry.getValue().size()/2);
+                medianInDegree = entry.getValue().get(entry.getValue().size() / 2);
             }
-            System.out.println(entry.getKey()+": "+medianInDegree);
+            System.out.println(entry.getKey() + ": " + medianInDegree);
             medianInDegrees.add(medianInDegree);
             this.vertexTypesToMedianInDegreeMap.put(entry.getKey(), medianInDegree);
         }
         double medianInDegree = this.getHighOutlierThreshold(medianInDegrees);
         double degreeForSuperVertexTypes = Math.max(medianInDegree, MEDIAN_SUPER_VERTEX_TYPE_INDEGREE_FLOOR);
-        System.out.println("Super vertex degree is "+ degreeForSuperVertexTypes);
+        System.out.println("Super vertex degree is " + degreeForSuperVertexTypes);
         return degreeForSuperVertexTypes;
     }
 
     private void calculateMaxInDegree(Map<String, List<Integer>> vertexTypesToInDegreesMap) {
         System.out.println("Max in-degrees of vertex types...");
         List<Double> maxInDegrees = new ArrayList<>();
-        for (Map.Entry<String, List<Integer>> entry: vertexTypesToInDegreesMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : vertexTypesToInDegreesMap.entrySet()) {
             if (entry.getValue().size() == 0) continue;
             double maxInDegree = Collections.max(entry.getValue()).doubleValue();
-            System.out.println(entry.getKey()+": "+maxInDegree);
+            System.out.println(entry.getKey() + ": " + maxInDegree);
             maxInDegrees.add(maxInDegree);
             this.vertexTypesToMedianInDegreeMap.put(entry.getKey(), maxInDegree);
         }
         double maxInDegree = getHighOutlierThreshold(maxInDegrees);
-        System.out.println("Based on histogram, high outlier threshold for in-degree is "+maxInDegree);
+        System.out.println("Based on histogram, high outlier threshold for in-degree is " + maxInDegree);
         double degreeForSuperVertexTypes = (Math.max(maxInDegree, DEFAULT_MAX_SUPER_VERTEX_DEGREE));
-        System.out.println("Super vertex degree is "+ degreeForSuperVertexTypes);
+        System.out.println("Super vertex degree is " + degreeForSuperVertexTypes);
     }
 
     private double getHighOutlierThreshold(List<Double> listOfDegrees) {
@@ -429,15 +446,15 @@ public class Histogram {
         if (listOfDegrees.size() == 1) return listOfDegrees.get(0);
         double q1, q3;
         if (listOfDegrees.size() % 2 == 0) {
-            int halfSize = listOfDegrees.size()/2;
-            q1 = listOfDegrees.get(halfSize/2);
-            q3 = listOfDegrees.get((halfSize+ listOfDegrees.size())/2);
+            int halfSize = listOfDegrees.size() / 2;
+            q1 = listOfDegrees.get(halfSize / 2);
+            q3 = listOfDegrees.get((halfSize + listOfDegrees.size()) / 2);
         } else {
-            int middleIndex = listOfDegrees.size()/2;
-            List<Double> firstHalf = listOfDegrees.subList(0,middleIndex);
-            q1 = firstHalf.get(firstHalf.size()/2);
+            int middleIndex = listOfDegrees.size() / 2;
+            List<Double> firstHalf = listOfDegrees.subList(0, middleIndex);
+            q1 = firstHalf.get(firstHalf.size() / 2);
             List<Double> secondHalf = listOfDegrees.subList(middleIndex, listOfDegrees.size());
-            q3 = secondHalf.get(secondHalf.size()/2);
+            q3 = secondHalf.get(secondHalf.size() / 2);
         }
         double iqr = q3 - q1;
         return q3 + (9 * iqr);
@@ -447,25 +464,25 @@ public class Histogram {
         int numOfCollapsedSuperVertices = 0;
         this.numOfEdgesInAllGraphs = 0;
         this.numOfVerticesInAllGraphs = 0;
-        for (Map.Entry<String, List<Integer>> entry: this.vertexTypesToInDegreesMap.entrySet()) {
+        for (Map.Entry<String, List<Integer>> entry : this.vertexTypesToInDegreesMap.entrySet()) {
             String superVertexType = entry.getKey();
             if (entry.getValue().size() == 0) continue;
             double medianDegree = this.vertexTypesToMedianInDegreeMap.get(entry.getKey());
             if (medianDegree > degreeForSuperVertexTypes) {
-                System.out.println("Collapsing super vertex "+superVertexType+" with...");
-                System.out.println("Degree = "+medianDegree+", Vertex Count = "+this.vertexTypesHistogram.get(superVertexType));
+                System.out.println("Collapsing super vertex " + superVertexType + " with...");
+                System.out.println("Degree = " + medianDegree + ", Vertex Count = " + this.vertexTypesHistogram.get(superVertexType));
                 numOfCollapsedSuperVertices++;
-                for (GraphLoader graph: this.graphs) {
+                for (GraphLoader graph : this.graphs) {
                     int numOfVertices = 0;
                     int numOfAttributes = 0;
                     int numOfAttributesAdded = 0;
                     int numOfEdgesDeleted = 0;
-                    for (Vertex v: graph.getGraph().getGraph().vertexSet()) {
+                    for (Vertex v : graph.getGraph().getGraph().vertexSet()) {
                         numOfVertices++;
                         if (v.getTypes().contains(superVertexType)) {
                             // Add edge label as an attribute and delete respective edge
                             List<RelationshipEdge> edgesToDelete = new ArrayList<>(graph.getGraph().getGraph().incomingEdgesOf(v));
-                            for (RelationshipEdge e: edgesToDelete) {
+                            for (RelationshipEdge e : edgesToDelete) {
                                 Vertex sourceVertex = e.getSource();
                                 Map<String, Attribute> sourceVertexAttrMap = sourceVertex.getAllAttributesHashMap();
                                 String newAttrName = e.getLabel();
@@ -479,17 +496,17 @@ public class Histogram {
                                 if (graph.getGraph().getGraph().removeEdge(e)) {
                                     numOfEdgesDeleted++;
                                 }
-                                for (String subjectVertexType: sourceVertex.getTypes()) {
+                                for (String subjectVertexType : sourceVertex.getTypes()) {
                                     for (String objectVertexType : e.getTarget().getTypes()) {
                                         String uniqueEdge = subjectVertexType + " " + e.getLabel() + " " + objectVertexType;
-                                        edgeTypesHistogram.put(uniqueEdge, edgeTypesHistogram.get(uniqueEdge)-1);
+                                        edgeTypesHistogram.put(uniqueEdge, edgeTypesHistogram.get(uniqueEdge) - 1);
                                     }
                                 }
                             }
                             // Update all attribute related histograms
                             for (String vertexType : v.getTypes()) {
                                 vertexTypesToAttributesMap.putIfAbsent(vertexType, new HashSet<>());
-                                for (String attrName: v.getAllAttributesNames()) {
+                                for (String attrName : v.getAllAttributesNames()) {
                                     if (attrName.equals("uri")) continue;
                                     numOfAttributes++;
                                     if (vertexTypesToAttributesMap.containsKey(vertexType)) {
@@ -504,7 +521,7 @@ public class Histogram {
                         }
                     }
                     System.out.println("Updated count of vertices in graph: " + numOfVertices);
-                    this.numOfVerticesInAllGraphs = this.getNumOfVerticesInAllGraphs()+numOfVertices;
+                    this.numOfVerticesInAllGraphs = this.getNumOfVerticesInAllGraphs() + numOfVertices;
 
                     System.out.println("Number of attributes added to graph: " + numOfAttributesAdded);
                     System.out.println("Updated count of attributes in graph: " + numOfAttributes);
@@ -512,16 +529,16 @@ public class Histogram {
                     System.out.println("Number of edges deleted from graph: " + numOfEdgesDeleted);
                     int newEdgeCount = graph.getGraph().getGraph().edgeSet().size();
                     System.out.println("Updated count of edges in graph: " + newEdgeCount);
-                    this.numOfEdgesInAllGraphs = this.getNumOfEdgesInAllGraphs()+newEdgeCount;
+                    this.numOfEdgesInAllGraphs = this.getNumOfEdgesInAllGraphs() + newEdgeCount;
                 }
             }
         }
-        System.out.println("Number of super vertices collapsed: "+numOfCollapsedSuperVertices);
+        System.out.println("Number of super vertices collapsed: " + numOfCollapsedSuperVertices);
     }
 
     public void setActiveAttributeSet() {
         System.out.println("Most distributed attributes:");
-        ArrayList<Map.Entry<String,Set<String>>> sortedAttrDistributionMap = new ArrayList<>(this.attrDistributionMap.entrySet());
+        ArrayList<Map.Entry<String, Set<String>>> sortedAttrDistributionMap = new ArrayList<>(this.attrDistributionMap.entrySet());
         sortedAttrDistributionMap.sort((o1, o2) -> o2.getValue().size() - o1.getValue().size());
         int exclusiveIndex = Math.min(gamma, sortedAttrDistributionMap.size());
         Set<String> activeAttributesSet = new HashSet<>();
@@ -542,8 +559,9 @@ public class Histogram {
     }
 
     public void setSortedFrequentEdgeHistogram() {
-        for (boolean checked: allSnapshotsCheckList)
-            if (!checked) throw new IllegalArgumentException("Cannot create sorted frequent edges set. Histogram was not run on all T snapshots.");
+        for (boolean checked : allSnapshotsCheckList)
+            if (!checked)
+                throw new IllegalArgumentException("Cannot create sorted frequent edges set. Histogram was not run on all T snapshots.");
 
         List<Map.Entry<String, Integer>> finalEdgesHist = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : this.edgeTypesHistogram.entrySet()) {
@@ -610,8 +628,9 @@ public class Histogram {
     }
 
     public void printHistogramStatistics() {
-        for (boolean checked: allSnapshotsCheckList)
-            if (!checked) throw new IllegalArgumentException("Cannot calculate histogram statistics. Histogram was not run on all T snapshots.");
+        for (boolean checked : allSnapshotsCheckList)
+            if (!checked)
+                throw new IllegalArgumentException("Cannot calculate histogram statistics. Histogram was not run on all T snapshots.");
         System.out.println("----------------Statistics for Histogram-----------------");
         System.out.println("Median Vertex Frequency: " + getMedianVertexFrequency());
         System.out.println("Median Edge Frequency: " + getMedianEdgeFrequency());
@@ -619,8 +638,9 @@ public class Histogram {
     }
 
     public void setSortedFrequentVerticesUsingFrequentEdges() {
-        for (boolean checked: allSnapshotsCheckList)
-            if (!checked) throw new IllegalArgumentException("Cannot create sorted frequent vertices set. Histogram was not run on all T snapshots.");
+        for (boolean checked : allSnapshotsCheckList)
+            if (!checked)
+                throw new IllegalArgumentException("Cannot create sorted frequent vertices set. Histogram was not run on all T snapshots.");
 
         Set<String> relevantFrequentVertexTypes = new HashSet<>();
         for (Map.Entry<String, Integer> entry : this.sortedFrequentEdgesHistogram) {
@@ -631,7 +651,7 @@ public class Histogram {
             relevantFrequentVertexTypes.add(targetType);
         }
         Map<String, Integer> relevantVertexTypesHistogram = new HashMap<>();
-        for (String relevantVertexType: relevantFrequentVertexTypes) {
+        for (String relevantVertexType : relevantFrequentVertexTypes) {
             if (vertexTypesHistogram.containsKey(relevantVertexType)) {
                 relevantVertexTypesHistogram.put(relevantVertexType, vertexTypesHistogram.get(relevantVertexType));
             }
