@@ -2,9 +2,7 @@ package ParallelDiscovery;
 
 import Discovery.Job;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class JobPartitioner {
 
@@ -18,21 +16,13 @@ public class JobPartitioner {
 
     public HashMap<Integer, ArrayList<Job>> partition()
     {
-        int numberOfJobs= estimator
-                .getJobsByFragmentID()
-                .keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .map(id -> estimator.getJobsByFragmentID().get(id).size())
-                .sum();
-        Job []allJobs=new Job[numberOfJobs];
         int i=0;
-        for (int id:estimator.getJobsByFragmentID().keySet()) {
-            for (Job job:estimator.getJobsByFragmentID().get(id)) {
-                allJobs[i]=job;
-                i++;
-            }
+        ArrayList<Job> valuesList = new ArrayList<>();
+        for (Map.Entry<Integer, ArrayList<Job>> entry : estimator.getJobsByFragmentID().entrySet()) {
+            valuesList.addAll(entry.getValue());
         }
+        Job[] allJobs = valuesList.toArray(new Job[0]);
+
         int []fragmentSize=new int[estimator.getNumberOfProcessors()];
         jobsByFragmentID=new HashMap<>();
         for (i=0;i< estimator.getNumberOfProcessors();i++)
