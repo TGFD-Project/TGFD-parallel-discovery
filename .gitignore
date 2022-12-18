@@ -36,3 +36,4 @@ build/
 /.mvn/
 /META-INF/
 /out/
+/.idea/
