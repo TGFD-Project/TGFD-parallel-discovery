@@ -97,7 +97,7 @@ public class JobEstimator {
         jobsByID=new HashMap<>();
         jobsByFragmentID= new HashMap<>();
         int jobID=0;
-        IntStream.range(0, numberOfProcessors+1)
+        IntStream.range(1, numberOfProcessors+1)
                 .forEach(i -> jobsByFragmentID.put(i, new ArrayList<>()));
 
         for (PatternTreeNode ptn:singlePatternTreeNodes) {
@@ -358,7 +358,7 @@ public class JobEstimator {
                 if (key != id) {
                     sb.append(key).append("\n");
                     for (SimpleEdge edge : dataToBeShipped.get(id).get(key))
-                        sb.append(edge.getSrc()).append("\t").append(edge.getDst()).append("\n");
+                        sb.append(edge.getSrc()).append("\t").append(edge.getDst()).append("\t").append(edge.getLabel()).append("\n");
                     if(Config.sharedStorage == Config.SharedStorage.S3)
                         S3Storage.upload(Config.S3BucketName,date + "_F" + id + "_to_" +key + ".txt",sb.toString());
                     else if (Config.sharedStorage == Config.SharedStorage.HDFS)
