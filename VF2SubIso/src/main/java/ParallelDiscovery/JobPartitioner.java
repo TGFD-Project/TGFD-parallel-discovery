@@ -16,16 +16,15 @@ public class JobPartitioner {
 
     public HashMap<Integer, ArrayList<Job>> partition()
     {
-        int i=0;
         ArrayList<Job> valuesList = new ArrayList<>();
         for (Map.Entry<Integer, ArrayList<Job>> entry : estimator.getJobsByFragmentID().entrySet()) {
             valuesList.addAll(entry.getValue());
         }
-        Job[] allJobs = valuesList.toArray(new Job[0]);
+        Job[] allJobs = valuesList.stream().toArray(Job[]::new);
 
         int []fragmentSize=new int[estimator.getNumberOfProcessors()];
         jobsByFragmentID=new HashMap<>();
-        for (i=0;i< estimator.getNumberOfProcessors();i++)
+        for (int i=0;i< estimator.getNumberOfProcessors();i++)
         {
             jobsByFragmentID.put(i+1,new ArrayList<>());
         }
@@ -34,7 +33,7 @@ public class JobPartitioner {
         {
             int id=-1;
             double min=Double.MAX_VALUE;
-            for (i=0;i<allJobs.length;i++) {
+            for (int i=0;i<allJobs.length;i++) {
                 if(!visited.contains(i) && allJobs[i].getSize()<min)
                 {
                     id=i;
@@ -46,7 +45,7 @@ public class JobPartitioner {
                 visited.add(id);
                 int minLoad=Integer.MAX_VALUE;
                 int selectedFragment=-1;
-                for (i=0;i<fragmentSize.length;i++)
+                for (int i=0;i<fragmentSize.length;i++)
                 {
                     if(fragmentSize[i]<minLoad)
                     {
@@ -60,7 +59,7 @@ public class JobPartitioner {
             else
                 break;
         }
-        for (i=0;i<fragmentSize.length;i++)
+        for (int i=0;i<fragmentSize.length;i++)
             System.out.print("F"+(i+1) + ": " + fragmentSize[i] + "  **  ");
         System.out.println("\nPartitioner is Done. Number of jobs: " + allJobs.length);
         return jobsByFragmentID;
