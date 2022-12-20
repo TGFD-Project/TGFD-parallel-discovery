@@ -121,7 +121,7 @@ public class HDFSStorage {
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
+                sb.append(line).append("\n");
             }
             inputStream.close();
             fileSystem.close();
@@ -130,6 +130,32 @@ public class HDFSStorage {
         }
         return sb;
     }
+
+//    public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) {
+//
+//        StringBuilder sb = new StringBuilder();
+//        try {
+//            Configuration configuration = new Configuration();
+//            configuration.set(Config.HDFSName, Config.HDFSAddress);
+//            FileSystem fileSystem = FileSystem.get(configuration);
+//            //Create a path
+//            Path hdfsReadPath = new Path(directoryName + fileName);
+//            //Init input stream
+//            FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
+//
+//            byte[] inputByte = new byte[inputStream.available()];
+//            while (inputStream.read(inputByte) != -1) {
+//                String s = new String(inputByte, 0, inputByte.length);
+//                sb.append(s);
+//            }
+//
+//            inputStream.close();
+//            fileSystem.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return sb;
+//    }
 
     public static Object downloadObject(String directoryName, String fileName) {
         Object obj = null;
