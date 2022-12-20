@@ -185,8 +185,9 @@ public class Worker {
                     datashipper=true;
                 }
             }
-            else
+            else {
                 System.out.println("*JOB RECEIVER*: Error happened - message is null");
+            }
         }
         consumer.close();
 
@@ -231,8 +232,10 @@ public class Worker {
                     Graph<Vertex, RelationshipEdge> receivedGraph =(Graph<Vertex, RelationshipEdge>) obj;
                     Util.mergeGraphs(runner.getLoaders()[0].getGraph(),receivedGraph);
                 }
-                else
+                else {
                     System.out.println("*WORKER*: Object was null!");
+                    continue;
+                }
             } else
                 System.out.println("*WORKER*: Error happened - msg is null");
             receivedData++;
@@ -244,7 +247,7 @@ public class Worker {
 
         Producer messageProducer=new Producer();
         messageProducer.connect();
-        messageProducer.send("results",nodeName+"@1");
+        messageProducer.send("results1",nodeName+"@1");
         System.out.println("*WORKER*: Superstep 1 is done successfully");
         messageProducer.close();
     }
@@ -332,7 +335,7 @@ public class Worker {
 
         Producer messageProducer=new Producer();
         messageProducer.connect();
-        messageProducer.send("results",nodeName+"@" + superStepNumber);
+        messageProducer.send("results" + superStepNumber,nodeName+"@" + superStepNumber);
         System.out.println("*WORKER*: SupersStep "+superStepNumber+" is done successfully");
         messageProducer.close();
     }
