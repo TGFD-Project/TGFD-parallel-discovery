@@ -9,6 +9,7 @@ import Partitioner.Util;
 import SharedStorage.HDFSStorage;
 import SharedStorage.S3Storage;
 import Util.Config;
+import Util.HAUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 
@@ -25,14 +26,16 @@ public class Worker {
     private HashMap<Integer, ArrayList<SimpleEdge>> dataToBeShipped;
     private List<PatternTreeNode> singlePatternTreeNodes;
     private TGFDDiscovery tgfdDiscovery;
+    private String[] args;
 
     //endregion
 
     //region --[Constructor]-----------------------------------------
 
-    public Worker()  {
+    public Worker(String[] args)  {
         tgfdDiscovery = new TGFDDiscovery();
         this.nodeName= Config.nodeName;
+        this.args = args;
 //        workingBucketName = Config
 //                .getFirstDataFilePath()
 //                .get(0)
@@ -51,14 +54,16 @@ public class Worker {
 
         receiveHistogramStats();
 
-        runner=new TaskRunner(Config.supersteps);
+        runner=new TaskRunner(Config.supersteps, args);
 
+        Config.optimizedLoadingBasedOnTGFD = false;
         this.runFirstSuperstep();
 
         for (int superstep =2; superstep<=Config.supersteps;superstep++)
         {
             runNextSuperSteps(superstep);
         }
+        Config.optimizedLoadingBasedOnTGFD = true;
 
         runner.calculateSupport();
 
@@ -88,9 +93,9 @@ public class Worker {
                 {
                     String fileName = msg.split("\t")[1];
                     if(Config.sharedStorage == Config.SharedStorage.HDFS)
-                        singlePatternTreeNodes = (List<PatternTreeNode>) HDFSStorage.downloadObject(Config.HDFSDirectory,fileName);
+                        singlePatternTreeNodes = HAUtils.castList(HDFSStorage.downloadObject(Config.HDFSDirectory,fileName), PatternTreeNode.class);
                     else if(Config.sharedStorage == Config.SharedStorage.S3)
-                        singlePatternTreeNodes = (List<PatternTreeNode>) S3Storage.downloadObject(Config.S3BucketName,fileName);
+                        singlePatternTreeNodes = HAUtils.castList(S3Storage.downloadObject(Config.S3BucketName,fileName), PatternTreeNode.class);;
                     System.out.println("All single PatternTreeNodes have been received.");
                     singlePatternTreeNodesRecieved=true;
                 }
@@ -123,9 +128,8 @@ public class Worker {
                         Discovery.Util.vertexTypesToActiveAttributesMap = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexTypesToActiveAttributesMap");
                         Discovery.Util.vertexHistogram = (Map<String, Integer>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexHistogram");
                         Discovery.Util.typeChangeURIs = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "typeChangeURIs");
-                        listSortedFrequentEdgesHistogram = (List<MapEntry>) HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedFrequentEdgesHistogram");
-                        listSortedVertexHistogram = (List<MapEntry>) HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedVertexHistogram");
-
+                        listSortedFrequentEdgesHistogram = HAUtils.castList(HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedFrequentEdgesHistogram"),MapEntry.class);
+                        listSortedVertexHistogram = HAUtils.castList(HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedVertexHistogram"), MapEntry.class);
                     }
                     else if(Config.sharedStorage == Config.SharedStorage.S3)
                     {

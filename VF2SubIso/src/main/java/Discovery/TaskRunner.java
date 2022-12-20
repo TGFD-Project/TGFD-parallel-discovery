@@ -5,9 +5,13 @@ import Infra.*;
 import Loader.*;
 import Util.Config;
 import VF2Runner.VF2SubgraphIsomorphism;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.isomorphism.VF2AbstractIsomorphismInspector;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +36,7 @@ public class TaskRunner {
 
 //    private HashMap <String, MatchCollection> matchCollectionHashMap;
 
-    public TaskRunner(int numberOfSnapshots)
+    public TaskRunner(int numberOfSnapshots, String[] args)
     {
         System.out.println("Task Runner for the "+ Config.datasetName +" dataset");
         assignedJobsBySnapshot=new HashMap<>();
@@ -40,21 +44,34 @@ public class TaskRunner {
         IntStream.range(0, numberOfSnapshots).forEach(i -> loaders[i] = null);
         IntStream.range(0, numberOfSnapshots).forEach(i -> assignedJobsBySnapshot.put(i, new HashMap<>()));
         vSpawn = new VSpawn();
+        Util.config(args);
     }
 
     public void load(int snapShotID)
     {
         int snapShotIndex = snapShotID-1;
-        if(loaders[snapShotID] == null)
+        if(loaders[snapShotIndex] == null)
         {
             long startTime=System.currentTimeMillis();
 
             //Load the first timestamp
             System.out.println("===========Snapshot "+snapShotID+" (" + Config.getTimestamps().get(snapShotID) + ")===========");
 
+            Map.Entry<String, List<String>> timestampToPathEntry = Util.timestampToFilesMap.get(snapShotIndex);
+            Model dataModel = ModelFactory.createDefaultModel();
+            for (String path : timestampToPathEntry.getValue()) {
+                if (!path.toLowerCase().endsWith(".ttl") && !path.toLowerCase().endsWith(".nt"))
+                    continue;
+                if (path.toLowerCase().contains("types"))
+                    continue;
+                Path input = Paths.get(path);
+                System.out.println("Reading data graph: " + path);
+                dataModel.read(input.toUri().toString());
+            }
+
             if(Config.datasetName== Config.dataset.dbpedia)
                 // TODO: needs to be fixed
-                loaders[snapShotIndex] = new DBPediaLoader(new ArrayList<>(), Config.getFirstTypesFilePath(), Config.getFirstDataFilePath());
+                loaders[snapShotIndex] = new DBPediaLoader(new ArrayList<>(), Collections.singletonList(dataModel), Collections.singletonList(dataModel));
             else if(Config.datasetName == Config.dataset.synthetic)
                 loaders[snapShotIndex] = new SyntheticLoader(new ArrayList<>(), Config.getFirstDataFilePath());
             else if(Config.datasetName == Config.dataset.pdd)

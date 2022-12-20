@@ -39,8 +39,8 @@ public class JobEstimator {
                 fragments.put(dataVertex,fragmentsByVertexURI.get(dataVertex.getVertexURI()));
             else
             {
-                fragments.put(dataVertex,0);
-                this.fragmentsByVertexURI.put(dataVertex.getVertexURI(),0);
+                fragments.put(dataVertex,1);
+                this.fragmentsByVertexURI.put(dataVertex.getVertexURI(),1);
             }
         }
         this.numberOfProcessors=numberOfProcessors;
@@ -97,7 +97,7 @@ public class JobEstimator {
         jobsByID=new HashMap<>();
         jobsByFragmentID= new HashMap<>();
         int jobID=0;
-        IntStream.range(0, numberOfProcessors)
+        IntStream.range(0, numberOfProcessors+1)
                 .forEach(i -> jobsByFragmentID.put(i, new ArrayList<>()));
 
         for (PatternTreeNode ptn:singlePatternTreeNodes) {

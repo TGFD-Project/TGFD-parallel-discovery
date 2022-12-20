@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 public class HDFSStorage {
 
-    public static void createDirectory(String directoryName){
+    public static void createDirectory(String directoryName) {
         try {
             Configuration configuration = new Configuration();
             configuration.set(Config.HDFSName, Config.HDFSAddress);
@@ -22,17 +22,14 @@ public class HDFSStorage {
             //String directoryName = "javadeveloperzone/javareadwriteexample";
             Path path = new Path(directoryName);
             fileSystem.mkdirs(path);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public static boolean upload(String directoryName, String fileName, Object obj, boolean removeTemporaryFile)
-    {
+    public static boolean upload(String directoryName, String fileName, Object obj, boolean removeTemporaryFile) {
         boolean done = false;
-        String tempFileName="./"+fileName+"_"+Util.Config.generateRandomString(4)+".ser";
+        String tempFileName = "./" + fileName + "_" + Util.Config.generateRandomString(4) + ".ser";
         try {
             FileOutputStream file = new FileOutputStream(tempFileName);
             ObjectOutputStream out = new ObjectOutputStream(file);
@@ -45,6 +42,12 @@ public class HDFSStorage {
 
             Configuration configuration = new Configuration();
             configuration.set(Config.HDFSName, Config.HDFSAddress);
+            configuration.set("fs.hdfs.impl",
+                    org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+            );
+            configuration.set("fs.file.impl",
+                    org.apache.hadoop.fs.LocalFileSystem.class.getName()
+            );
             FileSystem fileSystem = FileSystem.get(configuration);
 
             //Input stream for the file in local file system to be written to HDFS
@@ -61,12 +64,10 @@ public class HDFSStorage {
 
             System.out.println("Uploading Done. [directory name: " + directoryName + "] [file name: " + fileName + "]");
             done = true;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        if(removeTemporaryFile)
-        {
+        if (removeTemporaryFile) {
             System.out.println("Cleaning up the temporary storage...");
             File fileToBeUploaded = new File(tempFileName);
             boolean deleted = fileToBeUploaded.delete();
@@ -94,9 +95,7 @@ public class HDFSStorage {
             bufferedWriter.close();
             fileSystem.close();
             return true;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             return false;
         }
@@ -104,14 +103,13 @@ public class HDFSStorage {
 
     public static StringBuilder downloadWholeTextFile(String directoryName, String fileName) {
 
-        StringBuilder sb=new StringBuilder();
-        try
-        {
+        StringBuilder sb = new StringBuilder();
+        try {
             Configuration configuration = new Configuration();
             configuration.set(Config.HDFSName, Config.HDFSAddress);
             FileSystem fileSystem = FileSystem.get(configuration);
             //Create a path
-            Path hdfsReadPath = new Path(directoryName+ fileName);
+            Path hdfsReadPath = new Path(directoryName + fileName);
             //Init input stream
             FSDataInputStream inputStream = fileSystem.open(hdfsReadPath);
 
@@ -122,14 +120,12 @@ public class HDFSStorage {
             BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             String line;
-            while ((line=bufferedReader.readLine())!=null){
+            while ((line = bufferedReader.readLine()) != null) {
                 sb.append(line);
             }
             inputStream.close();
             fileSystem.close();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return sb;
