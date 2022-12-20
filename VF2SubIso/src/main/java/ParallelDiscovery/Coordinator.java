@@ -75,7 +75,7 @@ public class Coordinator {
 
     //region --[Public Methods]-----------------------------------------
 
-    public void start() throws IOException {
+    public void start() throws IOException, InterruptedException {
 
         tgfdDiscovery = new TGFDDiscovery(args);
         tgfdDiscovery.loadGraphsAndComputeHistogram2();
@@ -107,6 +107,7 @@ public class Coordinator {
         Thread setupThread = new Thread(new Setup());
         setupThread.setDaemon(false);
         setupThread.start();
+        setupThread.join();
 
         Set<PatternTreeNode> hSet = new HashSet<>(singlePatternTreeNodes);
         hSet.addAll(singlePatternTreeNodes);
@@ -115,6 +116,7 @@ public class Coordinator {
         Thread dataAndChangeFilesGeneratorThread = new Thread(new ShippedDataGenerator());
         dataAndChangeFilesGeneratorThread.setDaemon(false);
         dataAndChangeFilesGeneratorThread.start();
+        dataAndChangeFilesGeneratorThread.join();
     }
 
     public void initializeFromSplittedGraph(ArrayList<String> paths)
@@ -169,10 +171,11 @@ public class Coordinator {
         this.workersResultsChecker.set(false);
     }
 
-    public void assignJobs() {
+    public void assignJobs() throws InterruptedException {
         Thread jobAssignerThread = new Thread(new JobAssigner());
         jobAssignerThread.setDaemon(false);
         jobAssignerThread.start();
+        jobAssignerThread.join();
 
         Thread dataShipperThread = new Thread(new DataShipper());
         dataShipperThread.setDaemon(false);
@@ -265,7 +268,7 @@ public class Coordinator {
 
         estimator[0] = new JobEstimator(Util.graphs.get(0), Config.workers.size(), fragmentsByVertexURIForTheInitialLoad, 2);
         estimator[0].defineJobs(singlePatternTreeNodes);
-        estimator[0].partitionWorkload();
+//        estimator[0].partitionWorkload();
         //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
         HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator[0].dataToBeShipped();
         HashMap<Integer, ArrayList<String>> filesOnSharedStorage = estimator[0].sendEdgesToWorkersForShipment(dataToBeShipped);
@@ -356,8 +359,8 @@ public class Coordinator {
                                 .append(job.getCenterNode().getTypes().iterator().next())
                                 .append("\n");
                     }
-                    messageProducer.send(Config.workers.get(workerID), message.toString());
-                    System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
+                    messageProducer.send(Config.workers.get(workerID-1), message.toString());
+                    System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID-1) + "' successfully");
                 }
                 messageProducer.close();
                 System.out.println("*JOB ASSIGNER*: All jobs are assigned.");
@@ -414,8 +417,8 @@ public class Coordinator {
                         for (String path : edgesToBeShippedToOtherWorkers.get(currentSuperstep).get(workerID)) {
                             message.append(path).append("\n");
                         }
-                        messageProducer.send(Config.workers.get(workerID), message.toString());
-                        System.out.println("*DataShipper*: Shipping files have been shared with '" + Config.workers.get(workerID) + "' successfully");
+                        messageProducer.send(Config.workers.get(workerID-1), message.toString());
+                        System.out.println("*DataShipper*: Shipping files have been shared with '" + Config.workers.get(workerID-1) + "' successfully");
                     }
                     messageProducer.close();
                     System.out.println("*DataShipper*: All files are shared for the superstep: " + currentSuperstep);
@@ -440,21 +443,22 @@ public class Coordinator {
         public void run() {
             System.out.println("*DATA NEEDS TO BE SHIPPED*: Generating files to upload to S3 to send to workers later");
             try {
-                for (int i = 1; i <= Util.T; i++) {
+                for (int i = 1; i < Util.T; i++) {
                     estimator[i] = new JobEstimator(Util.graphs.get(i), Config.workers.size(), estimator[i - 1].getFragmentsByVertexURI(), 2);
 
                     HashMap<PatternTreeNode, HashSet<String>> previouslyDefinedJobsForVertices = new HashMap<>();
                     for (int j = 0; j < i; j++) {
                         HashMap<PatternTreeNode, HashSet<String>> temp = estimator[j].getAlreadyDefinedJobsForVertices();
                         for (PatternTreeNode ptn : temp.keySet()) {
-                            if (!previouslyDefinedJobsForVertices.containsKey(ptn))
+                            if (!previouslyDefinedJobsForVertices.containsKey(ptn)) {
                                 previouslyDefinedJobsForVertices.put(ptn, new HashSet<>());
+                            }
                             previouslyDefinedJobsForVertices.get(ptn).addAll(temp.get(ptn));
                         }
                     }
 
                     estimator[i].defineNewJobs(singlePatternTreeNodes, previouslyDefinedJobsForVertices);
-                    estimator[i].partitionWorkload();
+//                    estimator[i].partitionWorkload();
                     //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
                     HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator[i].dataToBeShipped();
                     HashMap<Integer, ArrayList<String>> filesOnSharedStorage = estimator[i].sendEdgesToWorkersForShipment(dataToBeShipped);

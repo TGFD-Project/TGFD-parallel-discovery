@@ -111,6 +111,7 @@ public class Histogram {
         if (timestampToPathsMap.size() != T)
             throw new IllegalArgumentException("timestampToPathsMap does not contain paths to T snapshots");
         int t = 0;
+        Config.optimizedLoadingBasedOnTGFD = false;
         for (Map.Entry<String, List<String>> timestampToPathEntry : timestampToPathsMap) {
             GraphLoader graphLoader = createGraphForTimestamp(timestampToPathEntry);
             computeHistogramOfSnapshot(graphLoader, superVertexDegree);
