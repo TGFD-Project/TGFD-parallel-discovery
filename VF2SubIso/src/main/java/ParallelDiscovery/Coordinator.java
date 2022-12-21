@@ -385,7 +385,7 @@ public class Coordinator {
                 while (true) {
                     int currentSuperstep = superstep.get();
                     while (!edgesToBeShippedToOtherWorkers.containsKey(currentSuperstep)) {
-                        System.out.println("*DataShipper*: Wait for the new superstep: ");
+//                        System.out.println("*DataShipper*: Wait for the new superstep: ");
                         Thread.sleep(Config.threadsIdleTime);
                         currentSuperstep = superstep.get();
                     }
@@ -407,8 +407,8 @@ public class Coordinator {
                                         .append(job.getCenterNode().getTypes().iterator().next())
                                         .append("\n");
                             }
-                            messageProducer.send(Config.workers.get(workerID), message.toString());
-                            System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID) + "' successfully");
+                            messageProducer.send(Config.workers.get(workerID - 1), message.toString());
+                            System.out.println("*JOB ASSIGNER*: jobs assigned to '" + Config.workers.get(workerID - 1) + "' successfully");
                         }
                     }
                     for (int workerID : edgesToBeShippedToOtherWorkers.get(currentSuperstep).keySet()) {
@@ -424,8 +424,9 @@ public class Coordinator {
                     System.out.println("*DataShipper*: All files are shared for the superstep: " + currentSuperstep);
                     edgesToBeShippedToOtherWorkers.remove(currentSuperstep);
                     changesToBeSentToOtherWorkers.remove(currentSuperstep);
-                    if (currentSuperstep == Config.getAllDataPaths().keySet().size() + 1)
+                    if (currentSuperstep == Util.numOfSnapshots) {
                         return;
+                    }
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -518,16 +519,23 @@ public class Coordinator {
                         }
                     }
                     if (done) {
-                        System.out.println("*RESULTS GETTER*: All workers have sent the results for superstep: " + superstep.get());
-                        if (superstep.get() > Config.getDiffFilesPath().keySet().size()) {
+//                        System.out.println("*RESULTS GETTER*: All workers have sent the results for superstep: " + superstep.get());
+//                        if (superstep.get() > Config.getDiffFilesPath().keySet().size()) {
+//                            System.out.println("*RESULTS GETTER*: All done! No superstep remained.");
+//                            superstep.set(superstep.get() + 1);
+//                            allDone.set(true);
+//                            break;
+//                        } else {
+//                            superstep.set(superstep.get() + 1);
+//                            System.out.println("*RESULTS GETTER*: Starting the new superstep! -> " + superstep.get());
+//                        }
+                        superstep.set(superstep.get() + 1);
+                        if (superstep.get() > Util.numOfSnapshots) {
                             System.out.println("*RESULTS GETTER*: All done! No superstep remained.");
-                            superstep.set(superstep.get() + 1);
                             allDone.set(true);
                             break;
-                        } else {
-                            superstep.set(superstep.get() + 1);
-                            System.out.println("*RESULTS GETTER*: Starting the new superstep! -> " + superstep.get());
                         }
+                        System.out.println("*RESULTS GETTER*: Starting the new superstep! -> " + superstep.get());
                     }
                     consumer.close();
                 }

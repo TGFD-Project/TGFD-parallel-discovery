@@ -287,7 +287,7 @@ public class Worker {
             Graph<Vertex, RelationshipEdge> graphToBeSent = extractGraphToBeSent(workerID,superStepNumber-1);
             LocalDateTime now = LocalDateTime.now();
             String date=now.getHour() + "_" + now.getMinute() + "_" + now.getSecond();
-            String key=date + "_G_" + nodeName + "_to_" +Config.workers.get(workerID) + ".ser";
+            String key=date + "_G_" + nodeName + "_to_" +Config.workers.get(workerID - 1) + ".ser";
 
             if(Config.sharedStorage == Config.SharedStorage.S3)
                 S3Storage.upload(Config.S3BucketName,key,graphToBeSent);
@@ -296,8 +296,8 @@ public class Worker {
 
             Producer messageProducer=new Producer();
             messageProducer.connect();
-            messageProducer.send(Config.workers.get(workerID)+"_data",key);
-            System.out.println("*DATA SENDER*: Graph object has been sent to '" + Config.workers.get(workerID) + "' successfully");
+            messageProducer.send(Config.workers.get(workerID - 1)+"_data",key);
+            System.out.println("*DATA SENDER*: Graph object has been sent to '" + Config.workers.get(workerID - 1) + "' successfully");
             messageProducer.close();
         }
 
