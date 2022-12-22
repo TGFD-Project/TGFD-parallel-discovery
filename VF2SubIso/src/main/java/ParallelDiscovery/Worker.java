@@ -292,7 +292,7 @@ public class Worker {
             if(Config.sharedStorage == Config.SharedStorage.S3)
                 S3Storage.upload(Config.S3BucketName,key,graphToBeSent);
             else if (Config.sharedStorage == Config.SharedStorage.HDFS)
-                HDFSStorage.upload(Config.S3BucketName,key,graphToBeSent,true);
+                HDFSStorage.upload(Config.HDFSDirectory,key,graphToBeSent,true);
 
             Producer messageProducer=new Producer();
             messageProducer.connect();
