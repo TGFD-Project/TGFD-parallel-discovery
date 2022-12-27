@@ -353,7 +353,7 @@ public class Coordinator {
                         // A job is in the form of the following
                         // id # CenterNodeVertexID # diameter # FragmentID # Type
                         message.append(job.getId()).append("#")
-                                .append(job.getCenterNode()).append("#")
+                                .append(job.getCenterNode().getVertexURI()).append("#")
                                 .append(job.getDiameter()).append("#")
                                 .append(job.getFragmentID()).append("#")
                                 .append(job.getCenterNode().getTypes().iterator().next())
@@ -401,7 +401,7 @@ public class Coordinator {
                                 // A job is in the form of the following
                                 // id # CenterNodeVertexID # diameter # FragmentID # Type
                                 message.append(job.getId()).append("#")
-                                        .append(job.getCenterNode()).append("#")
+                                        .append(job.getCenterNode().getVertexURI()).append("#")
                                         .append(job.getDiameter()).append("#")
                                         .append(job.getFragmentID()).append("#")
                                         .append(job.getCenterNode().getTypes().iterator().next())

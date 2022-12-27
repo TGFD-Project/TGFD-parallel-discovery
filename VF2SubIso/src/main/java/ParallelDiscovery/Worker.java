@@ -277,8 +277,9 @@ public class Worker {
                     datashipper=true;
                 }
             }
-            else
+            else {
                 System.out.println("*NEW JOBS RECEIVER*: Error happened - message is null");
+            }
         }
         consumer.close();
 

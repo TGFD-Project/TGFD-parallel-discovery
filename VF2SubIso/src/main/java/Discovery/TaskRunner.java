@@ -123,7 +123,6 @@ public class TaskRunner {
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    // TODO: Some of Jobs' pattern are null
                     Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
                     assignedJobsBySnapshot.get(0).put(job.getId(), job);
                 }
@@ -147,11 +146,11 @@ public class TaskRunner {
             for (int i=1;i<temp.length;i++)
             {
                 String []arr=temp[i].split("#");
-                if(arr.length==4)
+                if(arr.length==5)
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[3]));
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
                     assignedJobsBySnapshot.get(superStepIndex).put(job.getId(), job);
                 }
             }
@@ -283,7 +282,6 @@ public class TaskRunner {
         long startTime=System.currentTimeMillis();
         for (int index=0; index<=snapShotIndex; index++)
         {
-            // TODO: Some of jobs' attribute are null
             for (Job job: assignedJobsBySnapshot.get(index).values()) {
                 Set<String> validTypes = new HashSet<>();
                 PatternTreeNode JobPatternTreeNode = job.getPatternTreeNode();
