@@ -241,12 +241,13 @@ public class TaskRunner {
         long startTime=System.currentTimeMillis();
         for (int index=0; index<=snapShotIndex; index++)
         {
+            VF2DataGraph graph = loaders[snapShotIndex].getGraph();
             for (Job job: newJobsList.get(index)) {
                 Set<String> validTypes = new HashSet<>();
                 for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
                 }
-                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes); // Fix
+                Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes);
                 job.setSubgraph(subgraph);
                 ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
                 int numOfMatchesInTimestamp = 0;
@@ -254,8 +255,8 @@ public class TaskRunner {
                 if (results.isomorphismExists()) {
                     numOfMatchesInTimestamp = Match.extractMatches(results.getMappings(), matches, job.getPatternTreeNode(), entityURIsByPTN.get(job.getPatternTreeNode()), snapShotIndex);
                 }
-                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
-                System.out.println("Number of matches found that contain active attributes: " + matches.size());
+//                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
+//                System.out.println("Number of matches found that contain active attributes: " + matches.size());
                 matchesPerTimestampsByPTN.get(job.getPatternTreeNode()).get(snapShotIndex).addAll(matches);
             }
         }
@@ -282,6 +283,8 @@ public class TaskRunner {
         long startTime=System.currentTimeMillis();
         for (int index=0; index<=snapShotIndex; index++)
         {
+            // TODO: Check the index of loaders, should the index be 'index' or snapShotIndex?
+            VF2DataGraph graph = loaders[index].getGraph();
             for (Job job: assignedJobsBySnapshot.get(index).values()) {
                 Set<String> validTypes = new HashSet<>();
                 PatternTreeNode JobPatternTreeNode = job.getPatternTreeNode();
@@ -292,7 +295,7 @@ public class TaskRunner {
                 for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
                 }
-                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(centerNode, job.getDiameter(),validTypes); // Fix
+                Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(centerNode, job.getDiameter(),validTypes);
                 job.setSubgraph(subgraph);
                 ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
                 int numOfMatchesInTimestamp = 0;
