@@ -17,7 +17,7 @@ public class VSpawn {
             Util.previousLevelNodeIndex  = Util.previousLevelNodeIndex + 1;
         }
 
-        if (Util.previousLevelNodeIndex >= Util.patternTree.getLevel(Util.currentVSpawnLevel-1).size()) {
+        if (Util.previousLevelNodeIndex >= Util.patternTree.getLevel(Util.currentVSpawnLevel).size()) {
             Util.kRuntimes.add(System.currentTimeMillis() - Util.discoveryStartTime);
             Util.printTgfdsToFile(Util.experimentName, Util.discoveredTgfds.get(Util.currentVSpawnLevel));
             if (Util.kExperiment) Util.printExperimentRuntimestoFile();
@@ -38,7 +38,7 @@ public class VSpawn {
         System.out.println("Performing VSpawn");
         System.out.println("VSpawn Level " + Util.currentVSpawnLevel);
 
-        ArrayList<PatternTreeNode> previousLevel = Util.patternTree.getLevel(Util.currentVSpawnLevel - 1);
+        ArrayList<PatternTreeNode> previousLevel = Util.patternTree.getLevel(Util.currentVSpawnLevel);
         if (previousLevel.size() == 0) {
             System.out.println("Previous level of vSpawn contains no pattern nodes.");
             Util.previousLevelNodeIndex = (Util.previousLevelNodeIndex + 1);

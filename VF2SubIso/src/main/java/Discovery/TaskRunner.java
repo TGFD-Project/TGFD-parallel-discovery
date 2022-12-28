@@ -123,7 +123,6 @@ public class TaskRunner {
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    // TODO: Some of Jobs' pattern are null
                     Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
                     assignedJobsBySnapshot.get(0).put(job.getId(), job);
                 }
@@ -147,11 +146,11 @@ public class TaskRunner {
             for (int i=1;i<temp.length;i++)
             {
                 String []arr=temp[i].split("#");
-                if(arr.length==4)
+                if(arr.length==5)
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[3]));
+                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
                     assignedJobsBySnapshot.get(superStepIndex).put(job.getId(), job);
                 }
             }
@@ -242,12 +241,13 @@ public class TaskRunner {
         long startTime=System.currentTimeMillis();
         for (int index=0; index<=snapShotIndex; index++)
         {
+            VF2DataGraph graph = loaders[snapShotIndex].getGraph();
             for (Job job: newJobsList.get(index)) {
                 Set<String> validTypes = new HashSet<>();
                 for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
                 }
-                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes); // Fix
+                Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(),validTypes);
                 job.setSubgraph(subgraph);
                 ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
                 int numOfMatchesInTimestamp = 0;
@@ -255,8 +255,8 @@ public class TaskRunner {
                 if (results.isomorphismExists()) {
                     numOfMatchesInTimestamp = Match.extractMatches(results.getMappings(), matches, job.getPatternTreeNode(), entityURIsByPTN.get(job.getPatternTreeNode()), snapShotIndex);
                 }
-                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
-                System.out.println("Number of matches found that contain active attributes: " + matches.size());
+//                System.out.println("Number of matches found: " + numOfMatchesInTimestamp);
+//                System.out.println("Number of matches found that contain active attributes: " + matches.size());
                 matchesPerTimestampsByPTN.get(job.getPatternTreeNode()).get(snapShotIndex).addAll(matches);
             }
         }
@@ -283,7 +283,8 @@ public class TaskRunner {
         long startTime=System.currentTimeMillis();
         for (int index=0; index<=snapShotIndex; index++)
         {
-            // TODO: Some of jobs' attribute are null
+            // TODO: Check the index of loaders, should the index be 'index' or snapShotIndex?
+            VF2DataGraph graph = loaders[index].getGraph();
             for (Job job: assignedJobsBySnapshot.get(index).values()) {
                 Set<String> validTypes = new HashSet<>();
                 PatternTreeNode JobPatternTreeNode = job.getPatternTreeNode();
@@ -294,7 +295,7 @@ public class TaskRunner {
                 for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
                 }
-                Graph<Vertex, RelationshipEdge> subgraph = loaders[snapShotIndex].getGraph().getSubGraphWithinDiameter(centerNode, job.getDiameter(),validTypes); // Fix
+                Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(centerNode, job.getDiameter(),validTypes);
                 job.setSubgraph(subgraph);
                 ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
                 int numOfMatchesInTimestamp = 0;
