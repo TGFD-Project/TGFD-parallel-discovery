@@ -1,9 +1,10 @@
 package Infra;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PatternTree {
+public class PatternTree implements Serializable {
     public ArrayList<ArrayList<PatternTreeNode>> tree;
 
     public PatternTree() {

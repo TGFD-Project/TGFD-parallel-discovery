@@ -57,6 +57,7 @@ public class Worker {
         runner=new TaskRunner(Config.supersteps, args);
 
         Config.optimizedLoadingBasedOnTGFD = false;
+
         this.runFirstSuperstep();
 
         for (int superstep =2; superstep<=Config.supersteps;superstep++)
@@ -128,6 +129,7 @@ public class Worker {
                         Discovery.Util.vertexTypesToActiveAttributesMap = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexTypesToActiveAttributesMap");
                         Discovery.Util.vertexHistogram = (Map<String, Integer>) HDFSStorage.downloadObject(Config.HDFSDirectory, "vertexHistogram");
                         Discovery.Util.typeChangeURIs = (Map<String, Set<String>>) HDFSStorage.downloadObject(Config.HDFSDirectory, "typeChangeURIs");
+                        //Discovery.Util.patternTree = (PatternTree) HDFSStorage.downloadObject(Config.HDFSDirectory, "patternTree");
                         listSortedFrequentEdgesHistogram = HAUtils.castList(HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedFrequentEdgesHistogram"),MapEntry.class);
                         listSortedVertexHistogram = HAUtils.castList(HDFSStorage.downloadObject(Config.HDFSDirectory, "sortedVertexHistogram"), MapEntry.class);
                     }
@@ -138,6 +140,7 @@ public class Worker {
                         Discovery.Util.vertexTypesToActiveAttributesMap = (Map<String, Set<String>>) S3Storage.downloadObject(Config.S3BucketName, "vertexTypesToActiveAttributesMap");
                         Discovery.Util.vertexHistogram = (Map<String, Integer>) S3Storage.downloadObject(Config.S3BucketName, "vertexHistogram");
                         Discovery.Util.typeChangeURIs = (Map<String, Set<String>>) S3Storage.downloadObject(Config.S3BucketName, "typeChangeURIs");
+                        //Discovery.Util.patternTree = (PatternTree) S3Storage.downloadObject(Config.S3BucketName, "patternTree");
                         listSortedFrequentEdgesHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedFrequentEdgesHistogram");
                         listSortedVertexHistogram = (List<MapEntry>) S3Storage.downloadObject(Config.S3BucketName, "sortedVertexHistogram");
                     }
@@ -149,7 +152,7 @@ public class Worker {
                     for (MapEntry entry: listSortedVertexHistogram) {
                         Discovery.Util.sortedVertexHistogram.add(new AbstractMap.SimpleEntry<>(entry.key, entry.value));
                     }
-
+                    Discovery.Util.setCurrentVSpawnLevel(Discovery.Util.currentVSpawnLevel + 1);
                     System.out.println("All Stats for the Histogram have been received.");
                     histogramStatsReceived=true;
                 }

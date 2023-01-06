@@ -227,6 +227,7 @@ public class Coordinator {
             HDFSStorage.upload(Config.HDFSDirectory, "sortedVertexHistogram", listSortedVertexHistogram,true);
             HDFSStorage.upload(Config.HDFSDirectory, "vertexHistogram", Util.vertexHistogram,true);
             HDFSStorage.upload(Config.HDFSDirectory, "typeChangeURIs", Util.typeChangeURIs,true);
+//            HDFSStorage.upload(Config.HDFSDirectory, "patternTree", Util.patternTree,true);
         }
         else if(Config.sharedStorage == Config.SharedStorage.S3)
         {
@@ -237,6 +238,7 @@ public class Coordinator {
             S3Storage.upload(Config.S3BucketName, "sortedVertexHistogram", listSortedVertexHistogram);
             S3Storage.upload(Config.S3BucketName, "vertexHistogram", Util.vertexHistogram);
             S3Storage.upload(Config.S3BucketName, "typeChangeURIs", Util.typeChangeURIs);
+//            S3Storage.upload(Config.S3BucketName, "patternTree", Util.patternTree);
         }
 
         Producer messageProducer=new Producer();

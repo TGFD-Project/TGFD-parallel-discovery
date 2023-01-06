@@ -28,7 +28,7 @@ public class VSpawn {
             vSpawnTime = System.currentTimeMillis();
             if (Util.currentVSpawnLevel > Util.k) {
                 Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-                return null;
+                return new VSpawnedPatterns();
             }
             Util.patternTree.addLevel();
             Util.previousLevelNodeIndex = 0;
@@ -43,7 +43,7 @@ public class VSpawn {
             System.out.println("Previous level of vSpawn contains no pattern nodes.");
             Util.previousLevelNodeIndex = (Util.previousLevelNodeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
         PatternTreeNode previousLevelNode = previousLevel.get(Util.previousLevelNodeIndex);
         System.out.println("Processing previous level node " + Util.previousLevelNodeIndex + "/" + (previousLevel.size()-1));
@@ -54,7 +54,7 @@ public class VSpawn {
             System.out.println("Marked as pruned. Skip.");
             Util.previousLevelNodeIndex = (Util.previousLevelNodeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
 
         System.out.println("Processing candidate edge " + Util.candidateEdgeIndex + "/" + (Util.sortedFrequentEdgesHistogram.size()-1));
@@ -69,7 +69,7 @@ public class VSpawn {
         if (Util.getVertexTypesToActiveAttributesMap().get(targetVertexType).size() == 0) {
             System.out.println("Target vertex in candidate edge does not contain active attributes");
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
-            return null;
+            return new VSpawnedPatterns();
         }
 
         // TODO: We should add support for duplicate vertex types in the future
@@ -77,7 +77,7 @@ public class VSpawn {
             System.out.println("Candidate edge contains duplicate vertex types. Skip.");
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
         String edgeType = candidateEdgeString.split(" ")[1];
 
@@ -87,14 +87,14 @@ public class VSpawn {
             System.out.println("already exists in pattern");
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
 
         if (Util.isMultipleEdge(previousLevelNode.getPattern(), sourceVertexType, targetVertexType)) {
             System.out.println("We do not support multiple edges between existing vertices.");
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
 
         // Checks if candidate edge extends pattern
@@ -105,7 +105,7 @@ public class VSpawn {
             System.out.println("does not extend from pattern");
             Util.candidateEdgeIndex = (Util.candidateEdgeIndex + 1);
             Util.addToTotalVSpawnTime(System.currentTimeMillis()-vSpawnTime);
-            return null;
+            return new VSpawnedPatterns();
         }
 
         PatternTreeNode patternTreeNode = null;
@@ -202,8 +202,8 @@ public class VSpawn {
 
     public class VSpawnedPatterns
     {
-        private PatternTreeNode oldPattern;
-        private PatternTreeNode newPattern;
+        private PatternTreeNode oldPattern = null;
+        private PatternTreeNode newPattern = null;
 
         public void setNewPattern(PatternTreeNode newPattern) {
             this.newPattern = newPattern;
