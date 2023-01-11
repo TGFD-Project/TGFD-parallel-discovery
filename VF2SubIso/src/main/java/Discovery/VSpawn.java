@@ -4,6 +4,8 @@ import Infra.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class VSpawn {
 
@@ -17,7 +19,7 @@ public class VSpawn {
             Util.previousLevelNodeIndex  = Util.previousLevelNodeIndex + 1;
         }
 
-        if (Util.previousLevelNodeIndex >= Util.patternTree.getLevel(Util.currentVSpawnLevel).size()) {
+        if (Util.previousLevelNodeIndex >= Util.patternTree.getLevel(Util.currentVSpawnLevel - 1).size()) {
             Util.kRuntimes.add(System.currentTimeMillis() - Util.discoveryStartTime);
             Util.printTgfdsToFile(Util.experimentName, Util.discoveredTgfds.get(Util.currentVSpawnLevel));
             if (Util.kExperiment) Util.printExperimentRuntimestoFile();
@@ -38,7 +40,7 @@ public class VSpawn {
         System.out.println("Performing VSpawn");
         System.out.println("VSpawn Level " + Util.currentVSpawnLevel);
 
-        ArrayList<PatternTreeNode> previousLevel = Util.patternTree.getLevel(Util.currentVSpawnLevel);
+        ArrayList<PatternTreeNode> previousLevel = Util.patternTree.getLevel(Util.currentVSpawnLevel - 1);
         if (previousLevel.size() == 0) {
             System.out.println("Previous level of vSpawn contains no pattern nodes.");
             Util.previousLevelNodeIndex = (Util.previousLevelNodeIndex + 1);
@@ -156,7 +158,7 @@ public class VSpawn {
             System.out.println("Created new pattern: " + newPattern);
 
             // TODO: Debug - Why does this work with strings but not subgraph isomorphism???
-            if (isIsomorphicPattern(newPattern, Util.patternTree)) {
+            if (!isIsomorphicPattern(newPattern, Util.patternTree)) {
                 pv.setMarked(true);
                 System.out.println("Skip. Candidate pattern is an isomorph of existing pattern");
                 continue;
@@ -171,7 +173,8 @@ public class VSpawn {
                 if (setCenterVertexAutomatically)
                     newPattern.assignOptimalCenterVertex(Util.vertexTypesToAvgInDegreeMap, Util.fastMatching);
                 patternTreeNode = new PatternTreeNode(newPattern, previousLevelNode, candidateEdgeString);
-                Util.patternTree.getTree().get(Util.currentVSpawnLevel).add(patternTreeNode);
+                // TODO: currentVSpawnLevel + 1, then add treeNode
+                Util.patternTree.getTree().get(Util.currentVSpawnLevel-1).add(patternTreeNode);
                 Util.patternTree.findSubgraphParents(Util.currentVSpawnLevel-1, patternTreeNode);
                 Util.patternTree.findCenterVertexParent(Util.currentVSpawnLevel-1, patternTreeNode, true);
             } else {
@@ -238,14 +241,24 @@ public class VSpawn {
         ArrayList<String> newPatternEdges = new ArrayList<>();
         newPattern.getPattern().edgeSet().forEach((edge) -> {newPatternEdges.add(edge.toString());});
         boolean isIsomorphic = false;
-        for (PatternTreeNode otherPattern: patternTree.getLevel(Util.currentVSpawnLevel)) {
+        for (PatternTreeNode otherPattern: patternTree.getLevel(Util.currentVSpawnLevel - 1)) {
             ArrayList<String> otherPatternEdges = new ArrayList<>();
             otherPattern.getGraph().edgeSet().forEach((edge) -> {otherPatternEdges.add(edge.toString());});
-            if (newPatternEdges.containsAll(otherPatternEdges)) {
+            if (newPatternEdges.containsAll(otherPatternEdges) && otherPatternEdges.size() != 0) {
                 System.out.println("Candidate pattern: " + newPattern);
                 System.out.println("is an isomorph of current VSpawn level pattern: " + otherPattern.getPattern());
                 isIsomorphic = true;
                 break;
+            } else if (otherPatternEdges.size() == 0) {
+                Set<String> types = new ArrayList<>(otherPattern.getGraph().vertexSet()).get(0).getTypes();
+                Set<Set<String>> collect = newPattern.getPattern().vertexSet().stream()
+                        .map(Vertex::getTypes).collect(Collectors.toSet());
+                if (collect.contains(types)) {
+                    System.out.println("Candidate pattern: " + newPattern);
+                    System.out.println("is an isomorph of current VSpawn level pattern: " + otherPattern.getPattern());
+                    isIsomorphic = true;
+                    break;
+                }
             }
         }
         final long isomorphicCheckingTime = System.currentTimeMillis() - isIsomorphicPatternCheckStartTime;
@@ -259,7 +272,7 @@ public class VSpawn {
         final long supergraphCheckingStartTime = System.currentTimeMillis();
         ArrayList<String> newPatternEdges = new ArrayList<>();
         newPattern.getPattern().edgeSet().forEach((edge) -> {newPatternEdges.add(edge.toString());});
-        int i = Util.currentVSpawnLevel;
+        int i = Util.currentVSpawnLevel - 1;
         boolean isSupergraph = false;
         while (i >= 0) {
             for (PatternTreeNode treeNode : patternTree.getLevel(i)) {

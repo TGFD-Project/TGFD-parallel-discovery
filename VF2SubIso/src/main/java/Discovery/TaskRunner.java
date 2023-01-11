@@ -123,8 +123,10 @@ public class TaskRunner {
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
-                    assignedJobsBySnapshot.get(0).put(job.getId(), job);
+                    if (typeToPattern.containsKey(arr[4])) {
+                        Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[0].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.get(arr[4]));
+                        assignedJobsBySnapshot.get(0).put(job.getId(), job);
+                    }
                 }
             }
         }
@@ -150,8 +152,10 @@ public class TaskRunner {
                 {
                     // A job is in the form of the following
                     // id # CenterNodeVertexID # diameter # FragmentID # Type
-                    Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
-                    assignedJobsBySnapshot.get(superStepIndex).put(job.getId(), job);
+                    if (typeToPattern.containsKey(arr[4])) {
+                        Job job=new Job(Integer.parseInt(arr[0]),(DataVertex) loaders[superStepIndex].getGraph().getNode(arr[1]),Integer.valueOf(arr[2]),0, typeToPattern.getOrDefault(arr[4], null));
+                        assignedJobsBySnapshot.get(superStepIndex).put(job.getId(), job);
+                    }
                 }
             }
         }
@@ -171,8 +175,8 @@ public class TaskRunner {
             if (Util.currentVSpawnLevel > Util.k)
                 break;
 
-            if (vSpawnedPatterns.getNewPattern() == null)
-                throw new NullPointerException("patternTreeNode == null");
+//            if (vSpawnedPatterns.getNewPattern() == null)
+//                throw new NullPointerException("patternTreeNode == null");
 
             matchesPerTimestampsByPTN.put(newPattern,new ArrayList<>());
             for (int timestamp = 0; timestamp < Util.numOfSnapshots; timestamp++) {
@@ -181,17 +185,25 @@ public class TaskRunner {
             entityURIsByPTN.put(newPattern, new HashMap<>());
 
             HashMap<Integer, ArrayList<Job>> newJobsList = new HashMap<>();
+            HashMap<Integer, HashMap<Integer, Job>> tempData = new HashMap<>();
 
             for (int index : assignedJobsBySnapshot.keySet()) {
                 newJobsList.put(index, new ArrayList<>());
+                tempData.put(index, new HashMap<>());
                 for (Job job : assignedJobsBySnapshot.get(index).values()) {
-                    if(job.getPatternTreeNode().equals(vSpawnedPatterns.getOldPattern()))
+                    if(job.getPatternTreeNode().getPattern().equals(vSpawnedPatterns.getOldPattern().getPattern()))
                     {
                         Job newJob=new Job(jobIDForNewJobs++,job.getCenterNode(),1,0, newPattern);
-                        assignedJobsBySnapshot.get(index).put(newJob.getId(), newJob);
+//                        assignedJobsBySnapshot.get(index).put(newJob.getId(), newJob);
                         newJobsList.get(index).add(newJob);
+                        tempData.get(index).put(newJob.getId(), newJob);
                     }
                 }
+            }
+
+            for (int index : assignedJobsBySnapshot.keySet()) {
+                HashMap<Integer, Job> storedData = tempData.get(index);
+                assignedJobsBySnapshot.get(index).putAll(storedData);
             }
 
             long matchingTime = System.currentTimeMillis();
@@ -242,7 +254,7 @@ public class TaskRunner {
         for (int index=0; index<=snapShotIndex; index++)
         {
             VF2DataGraph graph = loaders[snapShotIndex].getGraph();
-            for (Job job: newJobsList.get(index)) {
+            for (Job job: newJobsList.get(snapShotIndex)) {
                 Set<String> validTypes = new HashSet<>();
                 for (Vertex v: job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
@@ -357,7 +369,7 @@ public class TaskRunner {
         System.out.println("VSpawn Level 0");
 
         for (PatternTreeNode ptn: matchesPerTimestampsByPTN.keySet()) {
-            Util.patternTree.createNodeAtLevel(Util.currentVSpawnLevel, ptn.getPattern());
+            Util.patternTree.createNodeAtLevel(Util.currentVSpawnLevel - 1, ptn.getPattern());
 
             if (Util.doesNotSatisfyTheta(ptn))
                 ptn.setIsPruned();
@@ -369,8 +381,8 @@ public class TaskRunner {
                 Util.discoveredTgfds.get(0).addAll(tgfds);
             }
         }
-        System.out.println("GenTree Level " + Util.currentVSpawnLevel + " size: " + Util.patternTree.getLevel(Util.currentVSpawnLevel).size());
-        for (PatternTreeNode node : Util.patternTree.getLevel(Util.currentVSpawnLevel)) {
+        System.out.println("GenTree Level " + Util.currentVSpawnLevel + " size: " + Util.patternTree.getLevel(Util.currentVSpawnLevel - 1).size());
+        for (PatternTreeNode node : Util.patternTree.getLevel(Util.currentVSpawnLevel - 1)) {
             System.out.println("Pattern: " + node.getPattern());
         }
     }

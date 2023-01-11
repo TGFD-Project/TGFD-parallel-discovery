@@ -674,7 +674,7 @@ public class Util {
         printWithTime("Total Find Entities", Util.getTotalFindEntitiesTime(level));
         printWithTime("Total Discover Constant TGFDs", Util.getTotalDiscoverConstantTGFDsTime(level));
         printWithTime("Total Discover General TGFD", Util.getTotalDiscoverGeneralTGFDTime(level));
-        printWithTime("As of k = " + level + ", execution", Util.kRuntimes.get(level));
+        printWithTime("As of k = " + level + ", execution", Util.kRuntimes.get(level - 1));
         divertOutputToLogFile();
     }
 
