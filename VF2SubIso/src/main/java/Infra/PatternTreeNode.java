@@ -127,7 +127,7 @@ public class PatternTreeNode implements Serializable {
         PatternTreeNode currPatternTreeNode = this;
         ArrayList<AttributeDependency> zeroEntityPaths = new ArrayList<>(currPatternTreeNode.getZeroEntityDependencies());
         for (PatternTreeNode parentNode: subgraphParents) {
-            zeroEntityPaths.addAll(parentNode.getZeroEntityDependenciesOnThisPath());
+            zeroEntityPaths.addAll(parentNode.getZeroEntityDependencies());
         }
         return zeroEntityPaths;
     }
@@ -144,7 +144,7 @@ public class PatternTreeNode implements Serializable {
         PatternTreeNode currPatternTreeNode = this;
         ArrayList<AttributeDependency> minimalConstantPaths = new ArrayList<>(currPatternTreeNode.getMinimalConstantDependencies());
         for (PatternTreeNode parentNode: subgraphParents) {
-            minimalConstantPaths.addAll(parentNode.getAllMinimalConstantDependenciesOnThisPath());
+            minimalConstantPaths.addAll(parentNode.getMinimalConstantDependencies());
         }
         return minimalConstantPaths;
     }
@@ -161,7 +161,7 @@ public class PatternTreeNode implements Serializable {
         PatternTreeNode currPatternTreeNode = this;
         ArrayList<AttributeDependency> minimalPaths = new ArrayList<>(currPatternTreeNode.getMinimalDependencies());
         for (PatternTreeNode parentNode: subgraphParents) {
-            minimalPaths.addAll(parentNode.getAllMinimalDependenciesOnThisPath());
+            minimalPaths.addAll(parentNode.getMinimalDependencies());
         }
         return minimalPaths;
     }
