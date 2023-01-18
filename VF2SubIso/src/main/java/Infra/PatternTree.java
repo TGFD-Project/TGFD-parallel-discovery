@@ -1,8 +1,8 @@
 package Infra;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PatternTree implements Serializable {
     public ArrayList<ArrayList<PatternTreeNode>> tree;
@@ -18,9 +18,27 @@ public class PatternTree implements Serializable {
 
     public PatternTreeNode createNodeAtLevel(int level, VF2PatternGraph pattern, PatternTreeNode parentNode, String candidateEdgeString, boolean considerAlternativeParents) {
         PatternTreeNode node = new PatternTreeNode(pattern, parentNode, candidateEdgeString);
-        getTree().get(level).add(node);
-        findSubgraphParents(level-1, node);
-        findCenterVertexParent(level-1, node, considerAlternativeParents); // TO-DO: Why do we only need one parent?
+
+        Set<String> nodeCollect = node.getGraph().vertexSet()
+                .stream()
+                .map(Vertex::getTypes)
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+
+        Set<Set<String>> treeCollect = getTree().get(level).stream()
+                .map(x -> x.getGraph().vertexSet()
+                        .stream()
+                        .map(Vertex::getTypes)
+                        .flatMap(Set::stream)
+                        .collect(Collectors.toSet())
+                )
+                .collect(Collectors.toSet());
+
+        if (!treeCollect.contains(nodeCollect)) {
+            getTree().get(level).add(node);
+            findSubgraphParents(level, node);
+            findCenterVertexParent(level, node, considerAlternativeParents); // TO-DO: Why do we only need one parent?
+        }
         return node;
     }
 
@@ -36,7 +54,9 @@ public class PatternTree implements Serializable {
         if (level == 0) {
             System.out.println("Finding subgraph parents...");
             ArrayList<String> newPatternVertices = new ArrayList<>();
-            node.getGraph().vertexSet().forEach((vertex) -> {newPatternVertices.add(vertex.getTypes().iterator().next());});
+            node.getGraph().vertexSet().forEach((vertex) -> {
+                newPatternVertices.add(vertex.getTypes().iterator().next());
+            });
             for (PatternTreeNode otherPatternNode : this.getTree().get(level)) {
                 if (newPatternVertices.containsAll(otherPatternNode.getGraph().vertexSet().iterator().next().getTypes())) {
                     System.out.println("New pattern: " + node.getPattern());
@@ -47,10 +67,14 @@ public class PatternTree implements Serializable {
             return;
         }
         ArrayList<String> newPatternEdges = new ArrayList<>();
-        node.getGraph().edgeSet().forEach((edge) -> {newPatternEdges.add(edge.toString());});
+        node.getGraph().edgeSet().forEach((edge) -> {
+            newPatternEdges.add(edge.toString());
+        });
         for (PatternTreeNode otherPatternNode : this.getTree().get(level)) {
             ArrayList<String> otherPatternEdges = new ArrayList<>();
-            otherPatternNode.getGraph().edgeSet().forEach((edge) -> {otherPatternEdges.add(edge.toString());});
+            otherPatternNode.getGraph().edgeSet().forEach((edge) -> {
+                otherPatternEdges.add(edge.toString());
+            });
             if (newPatternEdges.containsAll(otherPatternEdges)) { // TO-DO: Should we also check for center vertex equality here?
                 System.out.println("New pattern: " + node.getPattern());
                 if (otherPatternNode.getGraph().edgeSet().size() == 0) {
@@ -67,11 +91,15 @@ public class PatternTree implements Serializable {
         if (level < 0) return;
         System.out.println("Finding center vertex parent...");
         ArrayList<String> newPatternEdges = new ArrayList<>();
-        node.getGraph().edgeSet().forEach((edge) -> {newPatternEdges.add(edge.toString());});
+        node.getGraph().edgeSet().forEach((edge) -> {
+            newPatternEdges.add(edge.toString());
+        });
         List<PatternTreeNode> almostParents = new ArrayList<>();
         for (PatternTreeNode otherPatternNode : this.getTree().get(level)) {
             ArrayList<String> otherPatternEdges = new ArrayList<>();
-            otherPatternNode.getGraph().edgeSet().forEach((edge) -> {otherPatternEdges.add(edge.toString());});
+            otherPatternNode.getGraph().edgeSet().forEach((edge) -> {
+                otherPatternEdges.add(edge.toString());
+            });
             if (newPatternEdges.containsAll(otherPatternEdges)) {
                 almostParents.add(otherPatternNode);
                 if (otherPatternNode.getPattern().getCenterVertexType().equals(node.getPattern().getCenterVertexType())) {
@@ -87,8 +115,8 @@ public class PatternTree implements Serializable {
             }
         }
         if (node.getCenterVertexParent() == null && considerAlternativeParents) {
-            for (PatternTreeNode almostParent: almostParents) {
-                for (Vertex v: node.getGraph().vertexSet()) {
+            for (PatternTreeNode almostParent : almostParents) {
+                for (Vertex v : node.getGraph().vertexSet()) {
                     Vertex almostParentCenterVertex = almostParent.getPattern().getCenterVertex();
                     if (v.getTypes().containsAll(almostParentCenterVertex.getTypes())) {
                         if (node.getPattern().calculateRadiusForGivenVertex(v) == node.getPattern().getRadius()) {
