@@ -2,6 +2,7 @@ package Infra;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -49,5 +50,18 @@ public class ConstantLiteral extends Literal implements Serializable {
                 ", attrName='" + attrName + '\'' +
                 ", attrValue='" + attrValue + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ConstantLiteral that = (ConstantLiteral) o;
+        return Objects.equals(vertexType, that.vertexType) && Objects.equals(attrName, that.attrName) && Objects.equals(attrValue, that.attrValue);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vertexType, attrName, attrValue);
     }
 }

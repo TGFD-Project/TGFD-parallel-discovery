@@ -565,7 +565,7 @@ public final class Match {
         return entityURI;
     }
 
-    public static int extractMatches(Iterator<GraphMapping<Vertex, RelationshipEdge>> iterator, ArrayList<HashSet<ConstantLiteral>> matches, PatternTreeNode patternTreeNode, Map<String, List<Integer>> entityURIs, int timestamp) {
+    public static int extractMatches(Iterator<GraphMapping<Vertex, RelationshipEdge>> iterator, HashSet<HashSet<ConstantLiteral>> matches, PatternTreeNode patternTreeNode, Map<String, List<Integer>> entityURIs, int timestamp) {
         int numOfMatches = 0;
         while (iterator.hasNext()) {
             numOfMatches++;
@@ -585,12 +585,12 @@ public final class Match {
             }
             matches.add(literalsInMatch);
         }
-        matches.sort(new Comparator<HashSet<ConstantLiteral>>() {
-            @Override
-            public int compare(HashSet<ConstantLiteral> o1, HashSet<ConstantLiteral> o2) {
-                return o1.size() - o2.size();
-            }
-        });
+//        matches.sort(new Comparator<HashSet<ConstantLiteral>>() {
+//            @Override
+//            public int compare(HashSet<ConstantLiteral> o1, HashSet<ConstantLiteral> o2) {
+//                return o1.size() - o2.size();
+//            }
+//        });
         return numOfMatches;
     }
 

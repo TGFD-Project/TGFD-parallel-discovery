@@ -241,7 +241,7 @@ public class TaskRunner {
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);
-                ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
+                HashSet<HashSet<ConstantLiteral>> matches = new HashSet<>();
                 int numOfMatchesInTimestamp = 0;
                 VF2AbstractIsomorphismInspector<Vertex, RelationshipEdge> results = VF2.execute2(subgraph, job.getPatternTreeNode().getPattern(), false);
                 // result: { graph1: real data, graph2: pattern{vertex, edge}
@@ -287,7 +287,7 @@ public class TaskRunner {
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(centerNode, job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);
-                ArrayList<HashSet<ConstantLiteral>> matches = new ArrayList<>();
+                HashSet<HashSet<ConstantLiteral>> matches = new HashSet<>();
                 int numOfMatchesInTimestamp = 0;
                 VF2AbstractIsomorphismInspector<Vertex, RelationshipEdge> results = VF2.execute2(subgraph, job.getPatternTreeNode().getPattern(), false);
                 if (results.isomorphismExists()) {
