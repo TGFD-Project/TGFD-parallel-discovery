@@ -162,24 +162,20 @@ public class JobEstimator {
                 for (RelationshipEdge edge:job.getEdges()) {
                     DataVertex srcVertex=(DataVertex) edge.getSource();
                     DataVertex dstVertex=(DataVertex) edge.getTarget();
-                    if(fragments.get(srcVertex)!=fragmentID)
-                    {
-                        if(fragments.get(srcVertex).equals(fragments.get(dstVertex)))
-                        {
-                            dataToBeShipped.get(fragments.get(srcVertex))
-                                    .get(fragmentID)
-                                    .add(new SimpleEdge(edge));
-                        }
-                        else if(fragments.get(dstVertex)!=fragmentID)
-                        {
-                            dataToBeShipped.get(fragments.get(dstVertex))
-                                    .get(fragmentID)
-                                    .add(new SimpleEdge(edge));
-                        }
-                    }
-                    else if(fragments.get(dstVertex)!=fragmentID)
-                    {
+
+                    if (fragments.get(srcVertex) != fragmentID && fragments.get(dstVertex) == fragmentID) {
+                        dataToBeShipped.get(fragments.get(srcVertex))
+                                .get(fragmentID)
+                                .add(new SimpleEdge(edge));
+                    } else if (fragments.get(srcVertex) == fragmentID && fragments.get(dstVertex) != fragmentID) {
                         dataToBeShipped.get(fragments.get(dstVertex))
+                                .get(fragmentID)
+                                .add(new SimpleEdge(edge));
+                    } else if (fragments.get(srcVertex) != fragmentID && fragments.get(dstVertex) != fragmentID) {
+                        dataToBeShipped.get(fragments.get(dstVertex))
+                                .get(fragmentID)
+                                .add(new SimpleEdge(edge));
+                        dataToBeShipped.get(fragments.get(srcVertex))
                                 .get(fragmentID)
                                 .add(new SimpleEdge(edge));
                     }
