@@ -277,7 +277,7 @@ public class TaskRunner {
         long startTime = System.currentTimeMillis();
         for (int index = 0; index <= snapShotIndex; index++) {
             // TODO: Check the index of loaders, should the index be 'index' or snapShotIndex?
-            VF2DataGraph graph = loaders[index].getGraph();
+            VF2DataGraph graph = loaders[snapShotIndex].getGraph();
             for (Job job : assignedJobsBySnapshot.get(index).values()) {
                 Set<String> validTypes = new HashSet<>();
                 PatternTreeNode JobPatternTreeNode = job.getPatternTreeNode();
@@ -287,6 +287,9 @@ public class TaskRunner {
                 }
                 for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
+                }
+                if (!graph.getGraph().containsVertex(job.getCenterNode())) {
+                    continue;
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(centerNode, job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);
