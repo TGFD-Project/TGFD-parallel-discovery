@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public class PatternTreeNode implements Serializable {
+    private static final long serialVersionUID = 5902292919660807871L;
     private VF2PatternGraph pattern;
     private Double patternSupport = null;
     private final PatternTreeNode parentNode;

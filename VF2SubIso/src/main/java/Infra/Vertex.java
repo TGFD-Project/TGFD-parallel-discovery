@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.*;
 
 public abstract class Vertex implements Comparable<Vertex>, Serializable {
-
+    private static final long serialVersionUID = 8759600846854696835L;
     private Set<String> types=new HashSet<>();
 
     private Set<Integer> jobletID=new HashSet<>();
@@ -149,4 +149,17 @@ public abstract class Vertex implements Comparable<Vertex>, Serializable {
     //public int hashCode() {
     //    return Objects.hash(intervals, vertices);
     //}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Vertex vertex = (Vertex) o;
+        return isMarked == vertex.isMarked && Objects.equals(types, vertex.types) && Objects.equals(attributes, vertex.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(types, isMarked, attributes);
+    }
 }

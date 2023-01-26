@@ -234,10 +234,13 @@ public class TaskRunner {
         long startTime = System.currentTimeMillis();
         for (int index = 0; index <= snapShotIndex; index++) {
             VF2DataGraph graph = loaders[snapShotIndex].getGraph();
-            for (Job job : newJobsList.get(snapShotIndex)) {
+            for (Job job : newJobsList.get(index)) {
                 Set<String> validTypes = new HashSet<>();
                 for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
                     validTypes.addAll(v.getTypes());
+                }
+                if (!graph.getGraph().containsVertex(job.getCenterNode())) {
+                    continue;
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);

@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class VF2PatternGraph implements Serializable {
-
+    private static final long serialVersionUID = -5660694430555162396L;
     private Graph<Vertex, RelationshipEdge> pattern;
 
     private int diameter=-1;
