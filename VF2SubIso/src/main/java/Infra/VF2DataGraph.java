@@ -496,7 +496,7 @@ public class VF2DataGraph implements Serializable {
                 // Check if the vertex is not visited
                 // Check if the vertex is within the diameter
                 // Check if the vertex type is a validType
-                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI())) {
+                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI()) && graph.containsVertex(w)) {
                     //Enqueue the vertex and add it to the visited set
                     visited.put(w.getVertexURI(), distance + 1);
                     queue.add(w);
@@ -509,7 +509,7 @@ public class VF2DataGraph implements Serializable {
                 // Check if the vertex is not visited
                 // Check if the vertex is within the diameter
                 // Check if the vertex type is a validType
-                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI())) {
+                if (distance + 1 <= diameter && isValidType(validTypes,w.getTypes()) && !visited.containsKey(w.getVertexURI()) && graph.containsVertex(w)) {
                     //Enqueue the vertex and add it to the visited set
                     visited.put(w.getVertexURI(), distance + 1);
                     queue.add(w);

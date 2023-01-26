@@ -22,6 +22,10 @@ public abstract class Vertex implements Comparable<Vertex>, Serializable {
         attributes= new HashMap<>();
     }
 
+    public Vertex(Set<String> types, Map<String, Attribute> attributes) {
+        this.types = types;
+        this.attributes = attributes;
+    }
 
     // Getter functions
 
@@ -150,16 +154,25 @@ public abstract class Vertex implements Comparable<Vertex>, Serializable {
     //    return Objects.hash(intervals, vertices);
     //}
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Vertex vertex = (Vertex) o;
-        return isMarked == vertex.isMarked && Objects.equals(types, vertex.types) && Objects.equals(attributes, vertex.attributes);
+        return Objects.equals(types, vertex.types) && Objects.equals(attributes, vertex.attributes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(types, isMarked, attributes);
+        return Objects.hash(types, attributes);
+    }
+
+    @Override
+    public String toString() {
+        return "Vertex{" +
+                "types=" + types +
+                ", attributes=" + attributes +
+                '}';
     }
 }
