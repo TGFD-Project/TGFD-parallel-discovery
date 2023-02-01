@@ -3,13 +3,11 @@ package Infra;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class DataVertex extends Vertex implements Serializable {
 
-
     private String vertexURI="";
-//    private final int hashValue;
-
 
     public DataVertex(String uri, String type) {
         super(type.toLowerCase());
@@ -21,15 +19,12 @@ public class DataVertex extends Vertex implements Serializable {
 
     @Override
     public String toString() {
-        return "vertex{" +
-                "type='" + getTypes() + '\'' +
+        return "DataVertex{" +
+                "vertexURI='" + vertexURI + '\'' +
+                ", type='" + getTypes() + '\'' +
                 ", attributes=" + super.getAllAttributesList() +
                 '}';
     }
-
-//    public int getHashValue() {
-//        return hashValue;
-//    }
 
     public String getVertexURI() {
         return vertexURI;
@@ -68,4 +63,18 @@ public class DataVertex extends Vertex implements Serializable {
         else
             return 0;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof DataVertex)) return false;
+        DataVertex that = (DataVertex) o;
+        return Objects.equals(vertexURI, that.vertexURI);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vertexURI);
+    }
+
 }
