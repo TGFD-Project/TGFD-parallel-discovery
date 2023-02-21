@@ -13,14 +13,12 @@ public class HSpawn {
     private PatternTreeNode patternTreeNode;
     private List<Set<Set<ConstantLiteral>>> matchesPerTimestamps;
 
-    public HSpawn(PatternTreeNode patternTreeNode, List<Set<Set<ConstantLiteral>>> matchesPerTimestamps)
-    {
+    public HSpawn(PatternTreeNode patternTreeNode, List<Set<Set<ConstantLiteral>>> matchesPerTimestamps) {
         this.matchesPerTimestamps = matchesPerTimestamps;
         this.patternTreeNode = patternTreeNode;
     }
 
-    public ArrayList<TGFD> performHSPawn()
-    {
+    public ArrayList<TGFD> performHSPawn() {
         ArrayList<TGFD> tgfds = new ArrayList<>();
 
         System.out.println("Performing HSpawn for " + patternTreeNode.getPattern());
@@ -36,18 +34,16 @@ public class HSpawn {
         }
         for (int j = 0; j < hSpawnLimit; j++) {
 
-            System.out.println("HSpawn level " + j + "/" + (hSpawnLimit-1));
+            System.out.println("HSpawn level " + j + "/" + (hSpawnLimit - 1));
 
             if (j == 0) {
                 literalTree.addLevel();
                 for (int index = 0; index < activeAttributesInPattern.size(); index++) {
                     ConstantLiteral literal = activeAttributesInPattern.get(index);
                     literalTree.createNodeAtLevel(j, literal, null);
-                    System.out.println("Created root "+index+"/"+activeAttributesInPattern.size()+" of literal forest.");
+                    System.out.println("Created root " + index + "/" + activeAttributesInPattern.size() + " of literal forest.");
                 }
-            }
-            else
-            {
+            } else {
                 ArrayList<LiteralTreeNode> literalTreePreviousLevel = literalTree.getLevel(j - 1);
                 if (literalTreePreviousLevel.size() == 0) {
                     System.out.println("Previous level of literal tree is empty. Nothing to expand. End HSpawn");
@@ -57,11 +53,11 @@ public class HSpawn {
                 HashSet<AttributeDependency> visitedPaths = new HashSet<>();
                 ArrayList<TGFD> currentLevelTGFDs = new ArrayList<>();
                 for (int literalTreePreviousLevelIndex = 0; literalTreePreviousLevelIndex < literalTreePreviousLevel.size(); literalTreePreviousLevelIndex++) {
-                    System.out.println("Expanding previous level literal tree path " + (literalTreePreviousLevelIndex+1) + "/" + literalTreePreviousLevel.size()+"...");
+                    System.out.println("Expanding previous level literal tree path " + (literalTreePreviousLevelIndex + 1) + "/" + literalTreePreviousLevel.size() + "...");
 
                     LiteralTreeNode previousLevelLiteral = literalTreePreviousLevel.get(literalTreePreviousLevelIndex);
                     ArrayList<ConstantLiteral> parentsPathToRoot = previousLevelLiteral.getPathToRoot(); //TODO: Can this be implemented as HashSet to improve performance?
-                    System.out.println("Literal path: "+parentsPathToRoot);
+                    System.out.println("Literal path: " + parentsPathToRoot);
 
                     if (previousLevelLiteral.isPruned()) {
                         System.out.println("Could not expand pruned literal path.");
@@ -69,8 +65,8 @@ public class HSpawn {
                     }
                     for (int index = 0; index < activeAttributesInPattern.size(); index++) {
                         ConstantLiteral literal = activeAttributesInPattern.get(index);
-                        System.out.println("Adding active attribute "+(index+1)+"/"+activeAttributesInPattern.size()+" to path...");
-                        System.out.println("Literal: "+literal);
+                        System.out.println("Adding active attribute " + (index + 1) + "/" + activeAttributesInPattern.size() + " to path...");
+                        System.out.println("Literal: " + literal);
                         if (Util.onlyInterestingTGFDs && j < patternTreeNode.getGraph().vertexSet().size()) { // Ensures all vertices are involved in dependency
                             if (Util.isUsedVertexType(literal.getVertexType(), parentsPathToRoot))
                                 continue;
@@ -82,7 +78,7 @@ public class HSpawn {
                         }
 
                         // Check if path to candidate leaf node is unique
-                        AttributeDependency newPath = new AttributeDependency(parentsPathToRoot,literal);
+                        AttributeDependency newPath = new AttributeDependency(parentsPathToRoot, literal);
                         System.out.println("New candidate literal path: " + newPath);
 
                         long visitedPathCheckingTime = System.currentTimeMillis();
@@ -103,12 +99,11 @@ public class HSpawn {
                         if (Util.hasSupportPruning && newPath.isSuperSetOfPath(patternTreeNode.getZeroEntityDependenciesOnThisPath())) { // Ensures we don't re-explore dependencies whose subsets have no entities
                             System.out.println("Skip. Candidate literal path is a superset of zero-entity dependency.");
                             isSuperSetPath = true;
-                        }
-                        else if (Util.hasMinimalityPruning && newPath.isSuperSetOfPath(patternTreeNode.getAllMinimalDependenciesOnThisPath())) { // Ensures we don't re-explore dependencies whose subsets have already have a general dependency
+                        } else if (Util.hasMinimalityPruning && newPath.isSuperSetOfPath(patternTreeNode.getAllMinimalDependenciesOnThisPath())) { // Ensures we don't re-explore dependencies whose subsets have already have a general dependency
                             System.out.println("Skip. Candidate literal path is a superset of minimal dependency.");
                             isSuperSetPath = true;
                         }
-                        supersetPathCheckingTime = System.currentTimeMillis()-supersetPathCheckingTime;
+                        supersetPathCheckingTime = System.currentTimeMillis() - supersetPathCheckingTime;
                         Util.printWithTime("supersetPathCheckingTime", supersetPathCheckingTime);
                         Util.addToTotalSupersetPathCheckingTime(supersetPathCheckingTime);
 
@@ -132,7 +127,7 @@ public class HSpawn {
                         final long deltaDiscoveryTime = System.currentTimeMillis();
                         DeltaDiscovery deltaDiscovery = new DeltaDiscovery(patternTreeNode, literalTreeNode, newPath, matchesPerTimestamps);
                         ArrayList<TGFD> discoveredTGFDs = deltaDiscovery.perform();
-                        Util.printWithTime("deltaDiscovery", System.currentTimeMillis()-deltaDiscoveryTime);
+                        Util.printWithTime("deltaDiscovery", System.currentTimeMillis() - deltaDiscoveryTime);
                         currentLevelTGFDs.addAll(discoveredTGFDs);
                     }
                 }
@@ -141,7 +136,7 @@ public class HSpawn {
                     tgfds.addAll(currentLevelTGFDs);
                 }
             }
-            System.out.println("Generated new literal tree nodes: "+ literalTree.getLevel(j).size());
+            System.out.println("Generated new literal tree nodes: " + literalTree.getLevel(j).size());
         }
         System.out.println("For pattern " + patternTreeNode.getPattern());
         System.out.println("HSpawn TGFD count: " + tgfds.size());

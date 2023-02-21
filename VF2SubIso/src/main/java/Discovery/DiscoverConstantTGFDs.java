@@ -2,24 +2,26 @@ package Discovery;
 
 import ICs.TGFD;
 import Infra.*;
+import com.google.common.collect.Maps;
+import org.apache.jena.ext.com.google.common.collect.Sets;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DiscoverConstantTGFDs {
 
     private PatternTreeNode patternNode;
     private ConstantLiteral yLiteral;
-    private Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>>  entities;
+    private Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>> entities;
     private Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap;
 
     private ArrayList<NegativeTGFD> negativeTGFDs = new ArrayList<>();
     private ArrayList<NoDeltaTGFD> noDeltaTGFDs = new ArrayList<>();
 
-    public DiscoverConstantTGFDs (PatternTreeNode patternNode, ConstantLiteral yLiteral, Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>> entities, Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap)
-    {
+    public DiscoverConstantTGFDs(PatternTreeNode patternNode, ConstantLiteral yLiteral, Map<Set<ConstantLiteral>, ArrayList<Map.Entry<ConstantLiteral, List<Integer>>>> entities, Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap) {
         this.patternNode = patternNode;
         this.yLiteral = yLiteral;
         this.entities = entities;
@@ -35,9 +37,9 @@ public class DiscoverConstantTGFDs {
         return noDeltaTGFDs;
     }
 
-    public ArrayList<TGFD> discover()
-    {
-        long discoverConstantTGFDsTime = System.currentTimeMillis(); long supersetPathCheckingTimeForThisDependency = 0;
+    public ArrayList<TGFD> discover() {
+        long discoverConstantTGFDsTime = System.currentTimeMillis();
+        long supersetPathCheckingTimeForThisDependency = 0;
         ArrayList<TGFD> tgfds = new ArrayList<>();
         String yVertexType = yLiteral.getVertexType();
         String yAttrName = yLiteral.getAttrName();
@@ -45,12 +47,13 @@ public class DiscoverConstantTGFDs {
             VF2PatternGraph newPattern = patternNode.getPattern().copy();
             DataDependency newDependency = new DataDependency();
             AttributeDependency constantPath = new AttributeDependency();
+            String attrValue = entityEntry.getValue().get(0).getKey().getAttrValue();
             for (Vertex v : newPattern.getPattern().vertexSet()) {
                 String vType = new ArrayList<>(v.getTypes()).get(0);
                 if (vType.equalsIgnoreCase(yVertexType)) { // TODO: What if our pattern has duplicate vertex types?
                     v.putAttributeIfAbsent(new Attribute(yAttrName));
                     if (newDependency.getY().size() == 0) {
-                        VariableLiteral newY = new VariableLiteral(yVertexType, yAttrName, yVertexType, yAttrName);
+                        ConstantLiteral newY = new ConstantLiteral(yVertexType, yAttrName, attrValue);
                         newDependency.addLiteralToY(newY);
                     }
                 }
@@ -63,7 +66,7 @@ public class DiscoverConstantTGFDs {
                     }
                 }
             }
-            constantPath.setRhs(new ConstantLiteral(yVertexType, yAttrName, null));
+            constantPath.setRhs(new ConstantLiteral(yVertexType, yAttrName, attrValue));
 
             System.out.println("Performing Constant TGFD discovery");
             System.out.println("Pattern: " + newPattern);
@@ -81,8 +84,7 @@ public class DiscoverConstantTGFDs {
                 Util.numOfConsistentRHS += 1;
                 List<Integer> timestampCounts = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
                 Util.Pair candidateDelta = getMinMaxPair(timestampCounts);
-                if (candidateDelta == null)
-                {
+                if (candidateDelta == null) {
                     noDeltaTGFDs.add(new NoDeltaTGFD(entityEntry));
                     continue;
                 }
@@ -106,13 +108,12 @@ public class DiscoverConstantTGFDs {
                 int minDistance = candidateDelta.min();
                 int maxDistance = candidateDelta.max();
                 if (minDistance <= maxDistance) {
-                    System.out.println("Calculating support for candidate delta ("+minDistance+","+maxDistance+")");
+                    System.out.println("Calculating support for candidate delta (" + minDistance + "," + maxDistance + ")");
                     double numerator;
                     List<Integer> timestampCounts = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
                     TreeSet<Util.Pair> satisfyingPairs = new TreeSet<>();
                     for (int index = 0; index < timestampCounts.size(); index++) {
-                        if (timestampCounts.get(index) == 0)
-                            continue;
+                        if (timestampCounts.get(index) == 0) continue;
                         else if (timestampCounts.get(index) > 1 && 0 >= minDistance && 0 <= maxDistance)
                             satisfyingPairs.add(new Util.Pair(index, index));
                         for (int j = index + 1; j < timestampCounts.size(); j++) {
@@ -155,7 +156,7 @@ public class DiscoverConstantTGFDs {
             int minDistance = mostSupportedDelta.min();
             int maxDistance = mostSupportedDelta.max();
             candidateTGFDdelta = new Delta(Period.ofYears(minDistance), Period.ofYears(maxDistance), Duration.ofDays(365));
-            System.out.println("Constant TGFD delta: "+candidateTGFDdelta);
+            System.out.println("Constant TGFD delta: " + candidateTGFDdelta);
             constantPath.setDelta(candidateTGFDdelta);
 
             long supersetPathCheckingTime = System.currentTimeMillis();
@@ -164,25 +165,22 @@ public class DiscoverConstantTGFDs {
                 System.out.println("Candidate constant TGFD " + constantPath + " is a superset of an existing minimal constant TGFD");
                 isNotMinimal = true;
             }
-            supersetPathCheckingTime = System.currentTimeMillis()-supersetPathCheckingTime;
+            supersetPathCheckingTime = System.currentTimeMillis() - supersetPathCheckingTime;
             supersetPathCheckingTimeForThisDependency += supersetPathCheckingTime;
             Util.printWithTime("supersetPathCheckingTime", supersetPathCheckingTime);
             Util.addToTotalSupersetPathCheckingTime(supersetPathCheckingTime);
 
-            if (isNotMinimal)
-                continue;
+            if (isNotMinimal) continue;
 
             // Only output constant TGFDs that satisfy support
             if (candidateTGFDsupport < Util.tgfdTheta) {
                 System.out.println("Could not satisfy TGFD support threshold for entity: " + entityEntry.getKey());
-            }
-            else {
+            } else {
                 System.out.println("Creating new constant TGFD...");
                 TGFD entityTGFD = new TGFD(newPattern, candidateTGFDdelta, newDependency, candidateTGFDsupport, patternNode.getPatternSupport(), "");
                 System.out.println("TGFD: " + entityTGFD);
                 tgfds.add(entityTGFD);
-                if (Util.hasMinimalityPruning)
-                    patternNode.addMinimalConstantDependency(constantPath);
+                if (Util.hasMinimalityPruning) patternNode.addMinimalConstantDependency(constantPath);
             }
         }
 
@@ -195,33 +193,87 @@ public class DiscoverConstantTGFDs {
 
     private void findCandidateDeltasForMostFreqRHS(ArrayList<Map.Entry<ConstantLiteral, List<Integer>>> rhsAttrValuesTimestampsSortedByFreq, ArrayList<Util.Pair> candidateDeltas) {
         List<Integer> timestampCountOfMostFreqRHS = rhsAttrValuesTimestampsSortedByFreq.get(0).getValue();
+        Set<Integer> distanceSet = computeMostFrequentArrayDistance(timestampCountOfMostFreqRHS);
+        List<Integer> sortDistance = distanceSet.stream().sorted().collect(Collectors.toList());
+        if (sortDistance.size() == 0) {
+            return;
+        }
         Integer minExclusionDistance = null;
         Integer maxExclusionDistance = null;
         for (Map.Entry<ConstantLiteral, List<Integer>> timestampCountEntryOfOtherRHS : rhsAttrValuesTimestampsSortedByFreq.subList(1, rhsAttrValuesTimestampsSortedByFreq.size())) {
             List<Integer> timestampCountOfOtherRHS = timestampCountEntryOfOtherRHS.getValue();
             for (int i = 0; i < timestampCountOfOtherRHS.size(); i++) {
                 int otherTimestampCount = timestampCountOfOtherRHS.get(i);
-                if (otherTimestampCount == 0)
-                    continue;
+                if (otherTimestampCount == 0) continue;
                 for (int j = 0; j < timestampCountOfMostFreqRHS.size(); j++) {
                     Integer refTimestampCount = timestampCountOfMostFreqRHS.get(j);
-                    if (refTimestampCount == 0)
-                        continue;
+                    if (refTimestampCount == 0) continue;
                     int distance = Math.abs(i - j);
                     minExclusionDistance = minExclusionDistance != null ? Math.min(minExclusionDistance, distance) : distance;
                     maxExclusionDistance = maxExclusionDistance != null ? Math.max(maxExclusionDistance, distance) : distance;
                 }
             }
-            if (minExclusionDistance != null && minExclusionDistance == 0
-                    && maxExclusionDistance != null && maxExclusionDistance == (Util.numOfSnapshots-1))
-                break;
+            if (minExclusionDistance != null && minExclusionDistance == 0 && maxExclusionDistance != null && maxExclusionDistance == (Util.numOfSnapshots - 1)) {
+                return;
+            }
         }
-        if (minExclusionDistance != null && minExclusionDistance > 0) {
-            candidateDeltas.add(new Util.Pair(0, minExclusionDistance-1));
+        HashMap<Integer, Integer> mostFreDistancePair = getMostFreDistancePair(sortDistance, minExclusionDistance, maxExclusionDistance);
+        if (!mostFreDistancePair.isEmpty()) {
+            mostFreDistancePair.forEach((key, value) -> {
+                candidateDeltas.add(new Util.Pair(key, value));
+            });
         }
-        if (maxExclusionDistance != null && maxExclusionDistance < Util.numOfSnapshots-1) {
-            candidateDeltas.add(new Util.Pair(maxExclusionDistance+1, Util.numOfSnapshots-1));
+    }
+
+    private Set<Integer> computeMostFrequentArrayDistance(List<Integer> data) {
+        int length = data.size();
+        Set<Integer> result = Sets.newHashSet();
+        for (int i = 0; i < length; i++) {
+            if (data.get(i) == 1) {
+                for (int j = i + 1; j < length; j++) {
+                    if (data.get(j) == 1) {
+                        result.add(j - i);
+                    }
+                }
+            }
         }
+        return result;
+    }
+
+    private HashMap<Integer, Integer> getMostFreDistancePair(List<Integer> data, int minExclusionDistance, int maxExclusionDistance) {
+        int length = data.size();
+        int start = 0;
+        int end = length - 1;
+        int minDistance = 0;
+        int maxDistance = 0;
+        HashMap<Integer, Integer> result = Maps.newHashMap();
+        if (data.get(start) < minExclusionDistance) {
+            minDistance = data.get(start);
+            maxDistance = data.get(start);
+            for (int i = 1; i < length; i++) {
+                int currentDistance = data.get(i);
+                if (currentDistance < minExclusionDistance) {
+                    maxDistance = currentDistance;
+                } else {
+                    break;
+                }
+            }
+            result.put(minDistance, maxDistance);
+        }
+        if (data.get(end) > maxExclusionDistance) {
+            minDistance = data.get(end);
+            maxDistance = data.get(end);
+            for (int i = length - 2; i > 0; i--) {
+                int currentDistance = data.get(i);
+                if (currentDistance > maxExclusionDistance) {
+                    minDistance = currentDistance;
+                } else {
+                    break;
+                }
+            }
+            result.put(minDistance, maxDistance);
+        }
+        return result;
     }
 
     @Nullable
@@ -243,8 +295,7 @@ public class DiscoverConstantTGFDs {
                 }
             }
         }
-        if (minDistance == null)
-            return null;
+        if (minDistance == null) return null;
         Integer indexOfFirstOccurence = null;
         for (int index = 0; index < timestampCounts.size(); index++) {
             if (timestampCounts.get(index) > 0) {
@@ -253,7 +304,7 @@ public class DiscoverConstantTGFDs {
             }
         }
         Integer indexOfFinalOccurence = null;
-        for (int index = timestampCounts.size()-1; index >= 0; index--) {
+        for (int index = timestampCounts.size() - 1; index >= 0; index--) {
             if (timestampCounts.get(index) > 0) {
                 indexOfFinalOccurence = index;
                 break;
@@ -266,8 +317,7 @@ public class DiscoverConstantTGFDs {
                 maxDistance = indexOfFinalOccurence - indexOfFirstOccurence;
             }
         }
-        if (maxDistance == null)
-            return null;
+        if (maxDistance == null) return null;
         if (minDistance > maxDistance) {
             System.out.println("Not enough timestamped matches found for entity.");
             return null;

@@ -21,9 +21,9 @@ public class VSpawn {
 
         if (Util.previousLevelNodeIndex >= Util.patternTree.getLevel(Util.currentVSpawnLevel - 2).size()) {
             Util.kRuntimes.add(System.currentTimeMillis() - Util.discoveryStartTime);
-//            Util.printTgfdsToFile(Util.experimentName, Util.discoveredTgfds.get(Util.currentVSpawnLevel));
+            Util.printTgfdsToFile(Util.experimentName, Util.discoveredTgfds.get(Util.currentVSpawnLevel));
             if (Util.kExperiment) Util.printExperimentRuntimestoFile();
-//            Util.printSupportStatisticsForThisSnapshot();
+            Util.printSupportStatisticsForThisSnapshot();
 //            Util.printTimeStatisticsForThisSnapshot(Util.currentVSpawnLevel);
             Util.addToTotalVSpawnTime(System.currentTimeMillis() - vSpawnTime);
             Util.setCurrentVSpawnLevel(Util.currentVSpawnLevel + 1);

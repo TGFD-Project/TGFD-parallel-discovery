@@ -14,16 +14,14 @@ public class DeltaDiscovery {
     private List<Set<Set<ConstantLiteral>>> matchesPerTimestamps;
     private EntityDiscovery entityDiscovery;
 
-    public DeltaDiscovery(PatternTreeNode patternNode, LiteralTreeNode literalTreeNode, AttributeDependency literalPath, List<Set<Set<ConstantLiteral>>> matchesPerTimestamps)
-    {
+    public DeltaDiscovery(PatternTreeNode patternNode, LiteralTreeNode literalTreeNode, AttributeDependency literalPath, List<Set<Set<ConstantLiteral>>> matchesPerTimestamps) {
         this.patternNode = patternNode;
         this.literalTreeNode = literalTreeNode;
         this.literalPath = literalPath;
         this.matchesPerTimestamps = matchesPerTimestamps;
     }
 
-    public ArrayList<TGFD> perform()
-    {
+    public ArrayList<TGFD> perform() {
         ArrayList<TGFD> tgfds = new ArrayList<>();
 
         // Add dependency attributes to pattern
@@ -56,7 +54,7 @@ public class DeltaDiscovery {
             System.out.println("No entities found during entity discovery.");
             if (Util.hasSupportPruning) {
                 literalTreeNode.setIsPruned();
-                System.out.println("Marked as pruned. Literal path "+literalTreeNode.getPathToRoot());
+                System.out.println("Marked as pruned. Literal path " + literalTreeNode.getPathToRoot());
                 patternNode.addZeroEntityDependency(literalPath);
             }
             return tgfds;
@@ -66,8 +64,8 @@ public class DeltaDiscovery {
         System.out.println("Discovering constant TGFDs");
 
         // Find Constant TGFDs
-        Map<Util.Pair,ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap = new HashMap<>();
-        DiscoverConstantTGFDs discoverConstantTGFDs = new DiscoverConstantTGFDs(patternNode,literalPath.getRhs(), entities, deltaToPairsMap);
+        Map<Util.Pair, ArrayList<TreeSet<Util.Pair>>> deltaToPairsMap = new HashMap<>();
+        DiscoverConstantTGFDs discoverConstantTGFDs = new DiscoverConstantTGFDs(patternNode, literalPath.getRhs(), entities, deltaToPairsMap);
         ArrayList<TGFD> constantTGFDs = discoverConstantTGFDs.discover();
 
         // TODO: Try discover general TGFD even if no constant TGFD candidate met support threshold

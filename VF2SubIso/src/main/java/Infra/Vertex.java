@@ -22,11 +22,6 @@ public abstract class Vertex implements Comparable<Vertex>, Serializable {
         attributes= new HashMap<>();
     }
 
-    public Vertex(Set<String> types, Map<String, Attribute> attributes) {
-        this.types = types;
-        this.attributes = attributes;
-    }
-
     // Getter functions
 
     public Map<String, Attribute> getAllAttributesHashMap() {
@@ -148,31 +143,4 @@ public abstract class Vertex implements Comparable<Vertex>, Serializable {
         this.isMarked = isMarked;
     }
 
-    // TODO: implement hashCode because Match uses vertex's hashcode as the signature [2021-02-07]
-    //@Override
-    //public int hashCode() {
-    //    return Objects.hash(intervals, vertices);
-    //}
-
-
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        Vertex vertex = (Vertex) o;
-//        return Objects.equals(types, vertex.types) && Objects.equals(attributes, vertex.attributes);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(types, attributes);
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return "Vertex{" +
-//                "types=" + types +
-//                ", attributes=" + attributes +
-//                '}';
-//    }
 }

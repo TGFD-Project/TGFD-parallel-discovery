@@ -19,26 +19,9 @@ public class PatternTree implements Serializable {
     public PatternTreeNode createNodeAtLevel(int level, VF2PatternGraph pattern, PatternTreeNode parentNode, String candidateEdgeString, boolean considerAlternativeParents) {
         PatternTreeNode node = new PatternTreeNode(pattern, parentNode, candidateEdgeString);
 
-        Set<String> nodeCollect = node.getGraph().vertexSet()
-                .stream()
-                .map(Vertex::getTypes)
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-
-        Set<Set<String>> treeCollect = getTree().get(level).stream()
-                .map(x -> x.getGraph().vertexSet()
-                        .stream()
-                        .map(Vertex::getTypes)
-                        .flatMap(Set::stream)
-                        .collect(Collectors.toSet())
-                )
-                .collect(Collectors.toSet());
-
-        if (!treeCollect.contains(nodeCollect)) {
-            getTree().get(level).add(node);
-            findSubgraphParents(level, node);
-            findCenterVertexParent(level, node, considerAlternativeParents); // TO-DO: Why do we only need one parent?
-        }
+        getTree().get(level).add(node);
+        findSubgraphParents(level, node);
+        findCenterVertexParent(level, node, considerAlternativeParents); // TO-DO: Why do we only need one parent?
         return node;
     }
 
