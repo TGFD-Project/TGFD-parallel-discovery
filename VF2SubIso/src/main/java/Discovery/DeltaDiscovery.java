@@ -21,8 +21,10 @@ public class DeltaDiscovery {
         this.matchesPerTimestamps = matchesPerTimestamps;
     }
 
-    public ArrayList<TGFD> perform() {
-        ArrayList<TGFD> tgfds = new ArrayList<>();
+    public ArrayList<ArrayList<TGFD>> perform() {
+        ArrayList<ArrayList<TGFD>> tgfds = new ArrayList<>();
+        tgfds.add(new ArrayList<>());
+        tgfds.add(new ArrayList<>());
 
         // Add dependency attributes to pattern
         // TODO: Fix - when multiple vertices in a pattern have the same type, attribute values get overwritten
@@ -70,7 +72,7 @@ public class DeltaDiscovery {
 
         // TODO: Try discover general TGFD even if no constant TGFD candidate met support threshold
         System.out.println("Constant TGFDs discovered: " + constantTGFDs.size());
-        tgfds.addAll(constantTGFDs);
+        tgfds.get(0).addAll(constantTGFDs);
 
         System.out.println("Discovering general TGFDs");
 
@@ -92,7 +94,7 @@ public class DeltaDiscovery {
                     patternNode.addMinimalDependency(literalPath);
                 }
             }
-            tgfds.addAll(generalTGFDs);
+            tgfds.get(1).addAll(generalTGFDs);
         }
 
         return tgfds;

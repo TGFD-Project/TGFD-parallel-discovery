@@ -18,8 +18,10 @@ public class HSpawn {
         this.patternTreeNode = patternTreeNode;
     }
 
-    public ArrayList<TGFD> performHSPawn() {
-        ArrayList<TGFD> tgfds = new ArrayList<>();
+    public ArrayList<ArrayList<TGFD>> performHSPawn() {
+        ArrayList<ArrayList<TGFD>> tgfds = new ArrayList<>();
+        tgfds.add(new ArrayList<>());
+        tgfds.add(new ArrayList<>());
 
         System.out.println("Performing HSpawn for " + patternTreeNode.getPattern());
 
@@ -51,7 +53,8 @@ public class HSpawn {
                 }
                 literalTree.addLevel();
                 HashSet<AttributeDependency> visitedPaths = new HashSet<>();
-                ArrayList<TGFD> currentLevelTGFDs = new ArrayList<>();
+                ArrayList<TGFD> currentLevelConstantTGFDs = new ArrayList<>();
+                ArrayList<TGFD> currentLevelGeneralTGFDs = new ArrayList<>();
                 for (int literalTreePreviousLevelIndex = 0; literalTreePreviousLevelIndex < literalTreePreviousLevel.size(); literalTreePreviousLevelIndex++) {
                     System.out.println("Expanding previous level literal tree path " + (literalTreePreviousLevelIndex + 1) + "/" + literalTreePreviousLevel.size() + "...");
 
@@ -126,20 +129,27 @@ public class HSpawn {
                         System.out.println("Performing Delta Discovery at HSpawn level " + j);
                         final long deltaDiscoveryTime = System.currentTimeMillis();
                         DeltaDiscovery deltaDiscovery = new DeltaDiscovery(patternTreeNode, literalTreeNode, newPath, matchesPerTimestamps);
-                        ArrayList<TGFD> discoveredTGFDs = deltaDiscovery.perform();
+                        ArrayList<ArrayList<TGFD>> performTGFDs = deltaDiscovery.perform();
+                        ArrayList<TGFD> constantTGFDs = performTGFDs.get(0);
+                        ArrayList<TGFD> generalTGFDs = performTGFDs.get(1);
                         Util.printWithTime("deltaDiscovery", System.currentTimeMillis() - deltaDiscoveryTime);
-                        currentLevelTGFDs.addAll(discoveredTGFDs);
+                        currentLevelConstantTGFDs.addAll(constantTGFDs);
+                        currentLevelGeneralTGFDs.addAll(generalTGFDs);
                     }
                 }
-                System.out.println("TGFDs generated at HSpawn level " + j + ": " + currentLevelTGFDs.size());
-                if (currentLevelTGFDs.size() > 0) {
-                    tgfds.addAll(currentLevelTGFDs);
+                System.out.println("Constant TGFDs generated at HSpawn level " + j + ": " + currentLevelConstantTGFDs.size());
+                System.out.println("General TGFDs generated at HSpawn level " + j + ": " + currentLevelGeneralTGFDs.size());
+                if (currentLevelConstantTGFDs.size() > 0) {
+                    tgfds.get(0).addAll(currentLevelConstantTGFDs);
+                }
+                if (currentLevelGeneralTGFDs.size() > 0) {
+                    tgfds.get(1).addAll(currentLevelGeneralTGFDs);
                 }
             }
             System.out.println("Generated new literal tree nodes: " + literalTree.getLevel(j).size());
         }
         System.out.println("For pattern " + patternTreeNode.getPattern());
-        System.out.println("HSpawn TGFD count: " + tgfds.size());
+//        System.out.println("HSpawn TGFD count: " + tgfds.size());
         return tgfds;
     }
 

@@ -99,6 +99,7 @@ public class Util {
     public static Map<String, Set<String>> typeChangeURIs;
 
     public static ArrayList<ArrayList<TGFD>> discoveredTgfds;
+    public static ArrayList<ArrayList<TGFD>> discoveredGeneralTgfds;
     public static final ArrayList<Long> kRuntimes = new ArrayList<>();
     public static List<Map.Entry<String, Integer>> sortedVertexHistogram; // freq nodes come from here
     public static List<Map.Entry<String, Integer>> sortedFrequentEdgesHistogram = null; // freq edges come from here
@@ -388,8 +389,10 @@ public class Util {
 
     public static void initializeTgfdLists() {
         discoveredTgfds = new ArrayList<>();
+        discoveredGeneralTgfds = new ArrayList<>();
         for (int vSpawnLevel = 0; vSpawnLevel <= k; vSpawnLevel++) {
             discoveredTgfds.add(new ArrayList<>());
+            discoveredGeneralTgfds.add(new ArrayList<>());
         }
     }
     public static JSONArray readJsonArrayFromFile(String changeFilePath) {

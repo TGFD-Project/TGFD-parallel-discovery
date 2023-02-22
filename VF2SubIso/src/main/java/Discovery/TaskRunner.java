@@ -213,9 +213,12 @@ public class TaskRunner {
 
             final long hSpawnStartTime = System.currentTimeMillis();
             HSpawn hspawn = new HSpawn(newPattern, matchesPerTimestampsByPTN.get(newPattern));
-            ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+            ArrayList<ArrayList<TGFD>> tgfds = hspawn.performHSPawn();
+            ArrayList<TGFD> constantTGFDs = tgfds.get(0);
+            ArrayList<TGFD> generalTGFDs = tgfds.get(1);
             Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
-            Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(tgfds);
+            Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(constantTGFDs);
+            Util.discoveredGeneralTgfds.get(Util.currentVSpawnLevel).addAll(generalTGFDs);
         }
     }
 
@@ -358,7 +361,7 @@ public class TaskRunner {
             else if (Util.generatek0Tgfds) {
                 final long hSpawnStartTime = System.currentTimeMillis();
                 HSpawn hspawn = new HSpawn(ptn, matchesPerTimestampsByPTN.get(ptn));
-                ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+                ArrayList<TGFD> tgfds = hspawn.performHSPawn().get(0);
                 Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
                 Util.discoveredTgfds.get(0).addAll(tgfds);
             }

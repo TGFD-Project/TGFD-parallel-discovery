@@ -180,7 +180,7 @@ public class TGFDDiscovery {
 //			}
 //			count++;
 
-			ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+			ArrayList<TGFD> tgfds = hspawn.performHSPawn().get(0);
 			Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
 			Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(tgfds);
 		}
@@ -280,7 +280,7 @@ public class TGFDDiscovery {
 
 			final long hSpawnStartTime = System.currentTimeMillis();
 			HSpawn hspawn = new HSpawn(patternTreeNode, matchesPerTimestamps);
-			ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+			ArrayList<TGFD> tgfds = hspawn.performHSPawn().get(0);
 			Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
 			Util.discoveredTgfds.get(Util.currentVSpawnLevel).addAll(tgfds);
 		}
@@ -542,7 +542,7 @@ public class TGFDDiscovery {
 				else {
 					final long hSpawnStartTime = System.currentTimeMillis();
 					HSpawn hspawn = new HSpawn(patternTreeNode, matchesPerTimestamps);
-					ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+					ArrayList<TGFD> tgfds = hspawn.performHSPawn().get(0);
 					Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
 					Util.discoveredTgfds.get(0).addAll(tgfds);
 				}
@@ -638,7 +638,7 @@ public class TGFDDiscovery {
 				else {
 					final long hSpawnStartTime = System.currentTimeMillis();
 					HSpawn hspawn = new HSpawn(patternTreeNode, matchesPerTimestamps);
-					ArrayList<TGFD> tgfds = hspawn.performHSPawn();
+					ArrayList<TGFD> tgfds = hspawn.performHSPawn().get(0);
 					Util.printWithTime("hSpawn", (System.currentTimeMillis() - hSpawnStartTime));
 					Util.discoveredTgfds.get(0).addAll(tgfds);
 				}
