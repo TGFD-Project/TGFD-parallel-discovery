@@ -40,11 +40,18 @@ public class testDBPediaPartitioner {
 
         System.out.println(String.join(", ", info));
 
-        DBPediaPartitioner_2 partitioner=new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0),2);
+        DBPediaPartitioner_2 partitioner=new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0),1);
         HashMap<DataVertex,Integer> mapping = partitioner.partition();
-        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2014\\2014-50000.ttl","./", mapping,2014);
-        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2015\\2015-50000.ttl","./", mapping,2015);
-        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2016\\2016-50000.ttl","./", mapping,2016);
-        partitioner.partition("C:\\Users\\student\\IdeaProjects\\TGFD-parallel-discovery\\out\\artifacts\\TGFD_jar\\dbpedia-50000\\2017\\2017-50000.ttl","./", mapping,2017);
+        // Local
+        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2014);
+        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2015);
+        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2016);
+        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2017);
+
+        // Server
+//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2014/2014-200000.ttl","./", mapping,2014);
+//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2015/2015-200000.ttl","./", mapping,2015);
+//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2016/2016-200000.ttl","./", mapping,2016);
+//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2017/2017-200000.ttl","./", mapping,2017);
     }
 }

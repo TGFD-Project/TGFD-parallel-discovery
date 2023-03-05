@@ -45,8 +45,8 @@ public class testParallelDiscovery {
             paths.add("/home/hadoop/data/dbpedia-50000_split/2/2014/DBPedia_data1_2014.ttl");
 
             // Local
-//            paths.add("/Users/roy/Desktop/TGFD/dbpedia-50000_split/1/2014/DBPedia_data0_2014.ttl");
-//            paths.add("/Users/roy/Desktop/TGFD/dbpedia-50000_split/2/2014/DBPedia_data1_2014.ttl");
+//            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/1/2014/DBPedia_data0_2014.ttl");
+//            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/2/2014/DBPedia_data1_2014.ttl");
             coordinator.initializeFromSplittedGraph(paths);
             coordinator.start();
             coordinator.assignJobs();

@@ -85,6 +85,7 @@ public class HDFSStorage {
             //String fileName = "read_write_hdfs_example.txt";
 
             Configuration configuration = new Configuration();
+            configuration.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
             configuration.set(Config.HDFSName, Config.HDFSAddress);
             FileSystem fileSystem = FileSystem.get(configuration);
             Path hdfsWritePath = new Path(directoryName + fileName);
@@ -162,6 +163,7 @@ public class HDFSStorage {
         try {
             Configuration configuration = new Configuration();
             configuration.set(Config.HDFSName, Config.HDFSAddress);
+            configuration.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
             FileSystem fileSystem = FileSystem.get(configuration);
 
             FSDataInputStream inputStream = fileSystem.open(new Path(directoryName, fileName));
