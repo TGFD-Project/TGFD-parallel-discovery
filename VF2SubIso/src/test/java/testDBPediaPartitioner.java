@@ -14,8 +14,7 @@ import java.util.HashMap;
 
 public class testDBPediaPartitioner {
 
-    public static void main(String []args)
-    {
+    public static void main(String[] args) {
 
 
         TGFDDiscovery tgfdDiscovery = new TGFDDiscovery(args);
@@ -40,13 +39,13 @@ public class testDBPediaPartitioner {
 
         System.out.println(String.join(", ", info));
 
-        DBPediaPartitioner_2 partitioner=new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0),1);
-        HashMap<DataVertex,Integer> mapping = partitioner.partition();
+        DBPediaPartitioner_2 partitioner = new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0), 2);
+        HashMap<DataVertex, Integer> mapping = partitioner.partition();
         // Local
-        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2014);
-        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2015);
-        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2016);
-        partitioner.partition("/Users/roy/Desktop/TGFD/dbpedia-200000","./", mapping,2017);
+        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2014/2014-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2014);
+        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2015/2015-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2015);
+        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2016/2016-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2016);
+        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2017/2017-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2017);
 
         // Server
 //        partitioner.partition("/home/wang851/partition/dbpedia-200000/2014/2014-200000.ttl","./", mapping,2014);
