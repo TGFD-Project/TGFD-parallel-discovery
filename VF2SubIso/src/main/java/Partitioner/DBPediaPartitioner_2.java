@@ -44,7 +44,7 @@ public class DBPediaPartitioner_2 {
 
         try {
             for (int i = 0; i < data.length; i++) {
-                FileWriter file = new FileWriter(savingDirectory + "DBPedia_data" + i + "_" + time + ".nt");
+                FileWriter file = new FileWriter(savingDirectory + "DBPedia_data" + i + "_" + time + ".ttl");
                 file.write(data[i].toString());
                 file.flush();
                 file.close();

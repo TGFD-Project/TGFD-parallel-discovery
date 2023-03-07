@@ -42,15 +42,15 @@ public class testDBPediaPartitioner {
         DBPediaPartitioner_2 partitioner = new DBPediaPartitioner_2((DBPediaLoader) Util.graphs.get(0), 2);
         HashMap<DataVertex, Integer> mapping = partitioner.partition();
         // Local
-        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2014/2014-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2014);
-        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2015/2015-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2015);
-        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2016/2016-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2016);
-        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2017/2017-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2017);
+//        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2014/2014-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2014);
+//        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2015/2015-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2015);
+//        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2016/2016-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2016);
+//        partitioner.partition("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-1000/2017/2017-1000.ttl", "/Users/roy/Desktop/TGFD/datasets/dbpedia/", mapping, 2017);
 
         // Server
-//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2014/2014-200000.ttl","./", mapping,2014);
-//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2015/2015-200000.ttl","./", mapping,2015);
-//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2016/2016-200000.ttl","./", mapping,2016);
-//        partitioner.partition("/home/wang851/partition/dbpedia-200000/2017/2017-200000.ttl","./", mapping,2017);
+        partitioner.partition("/home/wang851/partition/dbpedia-4000000/2014/2014-4000000.ttl","/home/wang851/partition/dbpedia-4000000/", mapping,2014);
+        partitioner.partition("/home/wang851/partition/dbpedia-4000000/2015/2015-4000000.ttl","/home/wang851/partition/dbpedia-4000000/", mapping,2015);
+        partitioner.partition("/home/wang851/partition/dbpedia-4000000/2016/2016-4000000.ttl","/home/wang851/partition/dbpedia-4000000/", mapping,2016);
+        partitioner.partition("/home/wang851/partition/dbpedia-4000000/2017/2017-4000000.ttl","/home/wang851/partition/dbpedia-4000000/", mapping,2017);
     }
 }
