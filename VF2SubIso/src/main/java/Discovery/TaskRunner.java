@@ -177,6 +177,7 @@ public class TaskRunner {
                 tempData.put(index, new HashMap<>());
                 for (Job job : assignedJobsBySnapshot.get(index).values()) {
                     if (job.getPatternTreeNode().getPattern().equals(vSpawnedPatterns.getOldPattern().getPattern())) {
+                        // TODO: change Diameter here?
                         Job newJob = new Job(jobIDForNewJobs++, job.getCenterNode(), 1, 0, newPattern);
 //                        assignedJobsBySnapshot.get(index).put(newJob.getId(), newJob);
                         newJobsList.get(index).add(newJob);
@@ -239,11 +240,11 @@ public class TaskRunner {
             VF2DataGraph graph = loaders[snapShotIndex].getGraph();
             for (Job job : newJobsList.get(index)) {
                 Set<String> validTypes = new HashSet<>();
-                for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
-                    validTypes.addAll(v.getTypes());
-                }
                 if (!graph.getGraph().containsVertex(job.getCenterNode())) {
                     continue;
+                }
+                for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
+                    validTypes.addAll(v.getTypes());
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(job.getCenterNode(), job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);
@@ -288,11 +289,11 @@ public class TaskRunner {
                 if (JobPatternTreeNode == null || centerNode == null) {
                     continue;
                 }
-                for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
-                    validTypes.addAll(v.getTypes());
-                }
                 if (!graph.getGraph().containsVertex(job.getCenterNode())) {
                     continue;
+                }
+                for (Vertex v : job.getPatternTreeNode().getGraph().vertexSet()) {
+                    validTypes.addAll(v.getTypes());
                 }
                 Graph<Vertex, RelationshipEdge> subgraph = graph.getSubGraphWithinDiameter(centerNode, job.getDiameter(), validTypes);
                 job.setSubgraph(subgraph);

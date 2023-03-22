@@ -70,6 +70,7 @@ public class JobEstimator {
         IntStream.range(1, numberOfProcessors+1)
                 .forEach(i -> jobsByFragmentID.put(i, new ArrayList<>()));
 
+        //TODO: Do not use for loop, use hashSet to store singlePatternTreeNodes' Type and traverse the graph once
         for (PatternTreeNode ptn:singlePatternTreeNodes) {
             alreadyDefinedJobsForVertices.put(ptn,new HashSet<>());
             System.out.println("PatternTreeNode with the center type: " + ptn.getPattern().getCenterVertexType());
@@ -92,7 +93,7 @@ public class JobEstimator {
         }
     }
 
-    public void defineNewJobs(List<PatternTreeNode> singlePatternTreeNodes, HashMap<PatternTreeNode, HashSet<String>> previouslyDefinedJobsForVertices)
+    public void defineNewJobs(List<PatternTreeNode> singlePatternTreeNodes)
     {
         jobsByID=new HashMap<>();
         jobsByFragmentID= new HashMap<>();
@@ -108,16 +109,17 @@ public class JobEstimator {
                 if(v.getTypes().contains(centerNodeType))
                 {
                     DataVertex dataVertex=(DataVertex) v;
-                    if(previouslyDefinedJobsForVertices.containsKey(ptn))
-                        if(previouslyDefinedJobsForVertices.get(ptn).contains(dataVertex.getVertexURI()))
-                            continue;
+//                    if(previouslyDefinedJobsForVertices.containsKey(ptn))
+//                    if(previouslyDefinedJobsForVertices.get(ptn).contains(dataVertex.getVertexURI())) {
+//                        continue;
+//                    }
                     jobID++;
                     Job job=new Job(jobID,dataVertex,diameter,fragments.get(dataVertex),ptn);
                     ArrayList<RelationshipEdge> edges = loader.getGraph().getEdgesWithinDiameter(dataVertex, diameter);
                     job.setEdges(edges);
                     jobsByID.put(jobID,job);
                     jobsByFragmentID.get(fragments.get(dataVertex)).add(job);
-                    alreadyDefinedJobsForVertices.get(ptn).add(dataVertex.getVertexURI());
+//                    alreadyDefinedJobsForVertices.get(ptn).add(dataVertex.getVertexURI());
                     if(jobID%100==0)
                         System.out.println("Jobs so far: " + jobID + "  **  " + LocalDateTime.now());
                 }

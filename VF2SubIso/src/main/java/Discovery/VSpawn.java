@@ -120,6 +120,7 @@ public class VSpawn {
                 System.out.println("Skip vertex. Already added candidate edge to vertex: " + pv.getTypes());
                 continue;
             }
+            // TODO: The function here seems the same as line 104
             if (!pv.getTypes().contains(sourceVertexType) && !pv.getTypes().contains(targetVertexType)) {
                 System.out.println("Skip vertex. Candidate edge does not connect to vertex: " + pv.getTypes());
                 pv.setMarked(true);

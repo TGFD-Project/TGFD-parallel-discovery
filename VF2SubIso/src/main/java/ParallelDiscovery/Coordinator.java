@@ -148,7 +148,7 @@ public class Coordinator {
             } else if (Config.datasetName == Config.dataset.synthetic) {
                 //loader = new SyntheticLoader(tgfds, Config.getFirstDataFilePath());
             } else if (Config.datasetName == Config.dataset.imdb) { // default is imdb
-                //loader = new SimpleIMDBLoader(tgfds, Config.getFirstDataFilePath());
+                loader = new IMDBLoader(new ArrayList<>(), Collections.singletonList(dataModel));
             }
 
             for (Vertex v : loader.getGraph().getGraph().vertexSet()) {
@@ -446,18 +446,18 @@ public class Coordinator {
                 for (int i = 1; i < Util.T; i++) {
                     estimator[i] = new JobEstimator(Util.graphs.get(i), Config.workers.size(), estimator[i - 1].getFragmentsByVertexURI(), 2);
 
-                    HashMap<PatternTreeNode, HashSet<String>> previouslyDefinedJobsForVertices = new HashMap<>();
-                    for (int j = 0; j < i; j++) {
-                        HashMap<PatternTreeNode, HashSet<String>> temp = estimator[j].getAlreadyDefinedJobsForVertices();
-                        for (PatternTreeNode ptn : temp.keySet()) {
-                            if (!previouslyDefinedJobsForVertices.containsKey(ptn)) {
-                                previouslyDefinedJobsForVertices.put(ptn, new HashSet<>());
-                            }
-                            previouslyDefinedJobsForVertices.get(ptn).addAll(temp.get(ptn));
-                        }
-                    }
+//                    HashMap<PatternTreeNode, HashSet<String>> previouslyDefinedJobsForVertices = new HashMap<>();
+//                    for (int j = 0; j < i; j++) {
+//                        HashMap<PatternTreeNode, HashSet<String>> temp = estimator[j].getAlreadyDefinedJobsForVertices();
+//                        for (PatternTreeNode ptn : temp.keySet()) {
+//                            if (!previouslyDefinedJobsForVertices.containsKey(ptn)) {
+//                                previouslyDefinedJobsForVertices.put(ptn, new HashSet<>());
+//                            }
+//                            previouslyDefinedJobsForVertices.get(ptn).addAll(temp.get(ptn));
+//                        }
+//                    }
 
-                    estimator[i].defineNewJobs(singlePatternTreeNodes, previouslyDefinedJobsForVertices);
+                    estimator[i].defineNewJobs(singlePatternTreeNodes);
 //                    estimator[i].partitionWorkload();
                     //System.out.println("Number of edges to be shipped: " + estimator.communicationCost());
                     HashMap<Integer, HashMap<Integer, ArrayList<SimpleEdge>>> dataToBeShipped = estimator[i].dataToBeShipped();

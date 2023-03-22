@@ -42,11 +42,11 @@ public class testParallelDiscovery {
 //            paths.add("Path To the first snapshot of the first worker");
             // DBPedia
             // Server
-            paths.add("/home/hadoop/data/dbpedia-4000000_split/4M_1/2015/DBPedia_data0_2015.ttl");
-            paths.add("/home/hadoop/data/dbpedia-4000000_split/4M_2/2015/DBPedia_data1_2015.ttl");
+//            paths.add("/home/hadoop/data/dbpedia-200000_split/200K_1/2014/DBPedia_data0_2014.ttl");
+//            paths.add("/home/hadoop/data/dbpedia-200000_split/200K_2/2014/DBPedia_data1_2014.ttl");
             // Local
-//            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/1/2014/DBPedia_data0_2014.ttl");
-//            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/2/2014/DBPedia_data1_2014.ttl");
+            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/1/2014/DBPedia_data0_2014.ttl");
+            paths.add("/Users/roy/Desktop/TGFD/datasets/dbpedia/dbpedia-50000_split/2/2014/DBPedia_data1_2014.ttl");
 
             // IMDB
             // Server
